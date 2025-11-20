@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funding Arbitrage TERMINAL │ Bybit ↔ Binance</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 15px; position: relative; }
+        h1 { text-align: center; color: #58a6ff; margin: 10px; }
+        .controls { text-align: center; margin: 15px 0; }
+        select, button, input { padding: 10px 16px; font-size: 16px; border-radius: 8px; border: none; background: #21262d; color: white; margin: 0 5px; }
+        input { width: 200px; text-transform: uppercase; }
+        .update { text-align: center; color: #ffa657; font-weight: bold; font-size: 1.1em; }
+
+        .sound-control { text-align: center; margin: 15px 0; color: #ffa657; font-size: 1.2em; }
+        .sound-control input { width: 90px; }
+
+        .spread-calc { text-align: center; margin: 20px auto; padding: 20px; background: #161b22; border-radius: 16px; border: 2px solid #30363d; max-width: 600px; }
+        .calc-result { margin-top: 20px; padding: 15px; background: #21262d; border-radius: 12px; font-size: 1.1em; line-height: 1.8; }
+
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #161b22; border-radius: 12px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.7); }
+        th { background: #1f6feb; color: white; padding: 12px 6px; text-align: center; font-size: 0.93em; }
+        td { padding: 10px 4px; text-align: center; font-size: 0.93em; }
+        tr:hover { background: #21262d; }
+        .ticker { color: #58a6ff; font-weight: bold; cursor: pointer; text-decoration: underline; }
+        .ticker:hover { color: #79c0ff; }
+        .chart-btn { background: #30363d; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin: 0 2px; }
+        .chart-btn:hover { background: #58a6ff; color: black; font-weight: bold; }
+        .calc-btn { background: #8b5cf6; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; }
+        .calc-btn:hover { background: #c084fc; color: black; font-weight: bold; }
+
+        .direction { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; font-weight: bold; }
+        .long { background: #166534; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.9em; }
+        .short { background: #7f1d1d; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.9em; }
+
+        .real-profit { background: rgba(34, 197, 94, 0.3) !important; animation: realGlow 1.5s infinite alternate; }
+        @keyframes realGlow { from { box-shadow: 0 0 15px #34d399; } to { box-shadow: 0 0 25px #34d399; } }
+
+        .lime { color: #7ffe94 !important; font-weight: bold; }
+        .green { color: #56d364 !important; font-weight: bold; }
+        .red { color: #ff7b72; font-weight: bold; }
+        .footer { text-align: center; color: #8b949e; margin-top: 20px; font-size: 0.9em; }
+        .copied { position: fixed; top: 20px; right: 20px; background: #238636; color: white; padding: 15px 30px; border-radius: 12px; z-index: 9999; opacity: 0; transition: opacity 0.4s; font-weight: bold; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+    <h1>Funding Arbitrage TERMINAL │ Bybit ↔ Binance</h1>
+    <div class="update" id="last-update">Обновлено: —</div>
+
+    <div class="controls">
+        <select id="limit-select">
+            <option value="5">ТОП-5</option>
+            <option value="10" selected>ТОП-10</option>
+            <option value="15">ТОП-15</option>
+            <option value="25">ТОП-25</option>
+            <option value="50">ТОП-50</option>
+            <option value="9999">ВСЕ</option>
+        </select>
+        <button onclick="updateNow()">Обновить</button>
+    </div>
+
+    <!-- Фильтр звука -->
+    <div class="sound-control">
+        Звук при Итого ≥ <input type="number" id="sound-threshold" step="0.1" value="0.5" style="width:90px;"> %
+    </div>
+
+    <div class="spread-calc">
+        <div style="margin-bottom:10px; color:#ffa657;">Введи тикер (например BTC, PEPE, SOON)</div>
+        <input type="text" id="ticker-input" placeholder="SOON" autofocus>
+        <button onclick="calcSpread()">Анализ</button>
+        <div class="calc-result" id="calc-result">Результат появится здесь</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Пара</th>
+                <th>TV</th>
+                <th>Calc</th>
+                <th>Спред 8ч</th>
+                <th>Чистый</th>
+                <th>Бонус<br>вход</th>
+                <th>Итого ≈</th>
+                <th>Направление</th>
+                <th>Bybit<br>цена</th>
+                <th>Binance<br>цена</th>
+                <th>Bybit<br>rate</th>
+                <th>Binance<br>rate</th>
+                <th>→By</th>
+                <th>→Bn</th>
+            </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="footer">
+        Клик по паре — копирует тикер | Shift+клик — с USDT | Calc — полный анализ<br>
+        Звук при достижении порога Итого (настраивается выше)<br>
+        <span id="clock"></span>
+    </div>
+
+    <div class="copied" id="copied">Скопировано!</div>
+
+<script>
+// ЗВУК — работает 100%
+let audioContext = null;
+function playAlert() {
+    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioContext.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = 900;
+    const gain = audioContext.createGain();
+    gain.gain.value = 0.4;
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.2);
+
+    setTimeout(() => {
+        const osc2 = audioContext.createOscillator();
+        osc2.type = 'sine';
+        osc2.frequency.value = 1200;
+        osc2.connect(gain);
+        osc2.start();
+        osc2.stop(audioContext.currentTime + 0.2);
+    }, 250);
+}
+
+// Постоянный звон колокольчиком, пока есть монеты выше порога
+let alertInterval = null;
+let alertActive = false;
+
+function startContinuousAlert() {
+    if (alertActive) return;
+    alertActive = true;
+    alertInterval = setInterval(playAlert, 2000); // каждые 2 секунды
+}
+
+function stopContinuousAlert() {
+    if (!alertActive) return;
+    alertActive = false;
+    clearInterval(alertInterval);
+}
+
+let previousBest = -999;
+
+function openCharts(s) { 
+    window.open(`https://www.tradingview.com/chart/?symbol=BINANCE:${s}USDT.P`, '_blank'); 
+    window.open(`https://www.tradingview.com/chart/?symbol=BYBIT:${s}USDT`, '_blank'); 
+}
+
+function copyTicker(ticker, withUSDT = false) {
+    const text = withUSDT ? ticker + 'USDT' : ticker;
+    navigator.clipboard.writeText(text);
+    const el = document.getElementById('copied');
+    el.textContent = `Скопировано: ${text}`;
+    el.style.opacity = 1;
+    setTimeout(() => el.style.opacity = 0, 1500);
+}
+
+async function calcSpread() {
+    const input = document.getElementById('ticker-input').value.trim().toUpperCase();
+    if (!input) return;
+    const symbol = input + 'USDT';
+    const cache = pricesCache[symbol] || {};
+    const fund = fundingCache[symbol] || {};
+    if (!cache.bybit || !cache.binance) {
+        document.getElementById('calc-result').innerHTML = `<span style="color:#ff7b72">Монета ${input} не найдена</span>`;
+        return;
+    }
+
+    const byPrice = cache.bybit;
+    const bnPrice = cache.binance;
+    const byRate = fund.bybit || 0;
+    const bnRate = fund.binance || 0;
+
+    const longOnBybit = byRate < bnRate;
+
+    const fundingSpread = Math.abs(byRate - bnRate);
+    const netFunding = fundingSpread - 0.14;
+    const entryBonus = longOnBybit ? (bnPrice - byPrice) / byPrice * 100 : (byPrice - bnPrice) / bnPrice * 100;
+    const totalProfit = netFunding + entryBonus;
+
+    const direction = longOnBybit ?
+        `<span style="color:#56d364">ЛОНГ Bybit</span> + <span style="color:#ff7b72">ШОРТ Binance</span>` :
+        `<span style="color:#56d364">ЛОНГ Binance</span> + <span style="color:#ff7b72">ШОРТ Bybit</span>`;
+
+    const totalColor = totalProfit >= 0.5 ? '#56d364' : totalProfit >= 0 ? '#ffa657' : '#ff7b72';
+
+    document.getElementById('calc-result').innerHTML = `
+        <div class="calc-title">${input}USDT — полный анализ</div>
+        <div>Bybit цена: <strong>${byPrice.toFixed(6)}</strong> | Binance цена: <strong>${bnPrice.toFixed(6)}</strong></div>
+        <div>Спред цены: <strong style="color:${entryBonus >= 0 ? '#56d364' : '#ff7b72'}">${entryBonus > 0 ? '+' : ''}${entryBonus.toFixed(3)}%</strong></div>
+        <div>Bybit funding: <strong>${byRate.toFixed(5)}%</strong> | Binance funding: <strong>${bnRate.toFixed(5)}%</strong></div>
+        <div>Спред фандинга: <strong>${fundingSpread.toFixed(4)}%</strong> → Чистый за 8ч: <strong>${netFunding.toFixed(4)}%</strong></div>
+        <div style="margin-top:15px;">Направление: ${direction}</div>
+        <div style="margin-top:15px; font-size:1.6em;" class="big-number" style="color:${totalColor}">
+            Итого за 8ч ≈ <strong>${totalProfit > 0 ? '+' : ''}${totalProfit.toFixed(4)}%</strong>
+            ${totalProfit >= 0.5 ? 'ВХОДИ СЕЙЧАС!' : totalProfit >= 0 ? '— Норм' : '— Пропусти'}
+        </div>
+    `;
+}
+
+async function update() {
+    try {
+        const binanceInfo = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo').then(r => r.json());
+        const activeSymbols = new Set(binanceInfo.symbols.filter(s => s.status === 'TRADING' && s.contractType === 'PERPETUAL').map(s => s.symbol));
+
+        const [bybitResp, binanceResp] = await Promise.all([
+            fetch('https://api.bybit.com/v5/market/tickers?category=linear'),
+            fetch('https://fapi.binance.com/fapi/v1/premiumIndex')
+        ]);
+        const bybitData = await bybitResp.json();
+        const binanceData = await binanceResp.json();
+
+        const bybit = {}; 
+        bybitData.result.list.forEach(t => { 
+            if (t.symbol.endsWith('USDT')) bybit[t.symbol] = { 
+                rate: parseFloat(t.fundingRate)*100, 
+                next: parseInt(t.nextFundingTime), 
+                price: parseFloat(t.markPrice || t.lastPrice) 
+            }; 
+        });
+
+        const binance = {}; 
+        binanceData.forEach(t => { 
+            if (t.symbol.endsWith('USDT')) binance[t.symbol] = { 
+                rate: parseFloat(t.lastFundingRate)*100, 
+                next: parseInt(t.nextFundingTime), 
+                price: parseFloat(t.markPrice) 
+            }; 
+        });
+
+        pricesCache = {};
+        fundingCache = {};
+
+        const now = Date.now();
+        const rows = [];
+        let bestTotal = -999;
+
+        for (const sym of Object.keys(bybit)) {
+            if (!binance[sym] || !activeSymbols.has(sym)) continue;
+
+            const br = bybit[sym].rate;
+            const bn = binance[sym].rate;
+            const byPrice = bybit[sym].price;
+            const bnPrice = binance[sym].price;
+
+            pricesCache[sym] = { bybit: byPrice, binance: bnPrice };
+            fundingCache[sym] = { bybit: br, binance: bn };
+
+            const longOnBybit = br < bn;
+
+            const fundingSpread = Math.abs(br - bn);
+            const netFunding = fundingSpread - 0.14;
+            const entryBonus = longOnBybit ? (bnPrice - byPrice) / byPrice * 100 : (byPrice - bnPrice) / bnPrice * 100;
+
+            if (Math.abs(entryBonus) > 5) continue;
+
+            const totalProfit = netFunding + entryBonus;
+            if (totalProfit > bestTotal) bestTotal = totalProfit;
+
+            const ticker = sym.replace('USDT', '');
+
+            const rowClass = totalProfit >= parseFloat(document.getElementById('sound-threshold').value) ? 'real-profit' : '';
+
+            const directionHTML = longOnBybit ?
+                `<div class="direction"><span class="long">ЛОНГ Bybit</span><span class="short">ШОРТ Binance</span></div>` :
+                `<div class="direction"><span class="long">ЛОНГ Binance</span><span class="short">ШОРТ Bybit</span></div>`;
+
+            const timeLeft = ms => { if (ms <= 0) return "УЖЕ!"; const m = Math.floor(ms/60000); return `${Math.floor(m/60)}ч${String(m%60).padStart(2,'0')}м`; };
+
+            rows.push({totalProfit, html: `
+                <tr class="${rowClass}">
+                    <td><span class="ticker" onclick="if(event.shiftKey) copyTicker('${ticker}', true); else copyTicker('${ticker}');">${ticker}</span></td>
+                    <td><span class="chart-btn" onclick="openCharts('${ticker}')">TV</span></td>
+                    <td><span class="calc-btn" onclick="document.getElementById('ticker-input').value='${ticker}'; calcSpread();">Calc</span></td>
+                    <td>${fundingSpread.toFixed(4)}%</td>
+                    <td class="${netFunding >= 0.1 ? 'lime' : netFunding >= 0 ? 'green' : 'red'}">${netFunding > 0 ? '+' : ''}${netFunding.toFixed(4)}%</td>
+                    <td class="${entryBonus >= 0.2 ? 'lime' : entryBonus >= 0 ? 'green' : 'red'}">${entryBonus > 0 ? '+' : ''}${entryBonus.toFixed(3)}%</td>
+                    <td style="font-weight:bold; font-size:1.1em;" class="${totalProfit >= 0.5 ? 'lime' : totalProfit >= 0 ? 'green' : 'red'}">
+                        ${totalProfit > 0 ? '+' : ''}${totalProfit.toFixed(4)}%
+                    </td>
+                    <td>${directionHTML}</td>
+                    <td>${byPrice.toFixed(6)}</td>
+                    <td>${bnPrice.toFixed(6)}</td>
+                    <td>${br.toFixed(5)}%</td>
+                    <td>${bn.toFixed(5)}%</td>
+                    <td>${timeLeft(bybit[sym].next - now)}</td>
+                    <td>${timeLeft(binance[sym].next - now)}</td>
+                </tr>
+            `});
+        }
+
+        // ЗВУК + МИГАНИЕ
+        const soundThreshold = parseFloat(document.getElementById('sound-threshold').value) || 0.5;
+        const hasAlert = rows.some(r => r.totalProfit >= soundThreshold);
+
+        if (hasAlert) {
+            startContinuousAlert();
+        } else {
+            stopContinuousAlert();
+        }
+
+        previousBest = bestTotal;
+
+        rows.sort((a,b) => b.totalProfit - a.totalProfit);
+        const limit = parseInt(document.getElementById('limit-select').value) || 10;
+        document.getElementById('tbody').innerHTML = rows.slice(0, limit).map(r => r.html).join('');
+        document.getElementById('last-update').innerHTML = `Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
+    } catch (e) { 
+        document.getElementById('tbody').innerHTML = `<tr><td colspan="14" style="color:#ff7b72">Ошибка сети</td></tr>`;
+    }
+}
+
+function updateNow() { 
+    document.getElementById('last-update').innerHTML = "Обновляю..."; 
+    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    update(); 
+}
+
+setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleString('ru-RU'), 1000);
+update();
+setInterval(update, 60000);
+document.getElementById('ticker-input').addEventListener('keyup', e => { if (e.key === 'Enter') calcSpread(); });
+</script>
+</body>
+</html>
