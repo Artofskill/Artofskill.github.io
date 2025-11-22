@@ -55,7 +55,7 @@
             padding: 18px;
             border-radius: 16px; 
             box-shadow: 0 8px 30px rgba(0,0,0,0.6); 
-            height: 600px; /* Увеличил высоту до 600px */
+            height: 667px;
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
@@ -68,7 +68,7 @@
             text-align: center;
         }
 
-        input, button { 
+        input, button, select { 
             padding: 8px 10px;
             font-size: 14px;
             border-radius: 8px; 
@@ -80,6 +80,11 @@
             color: white; 
             text-align: center; 
             width: 100%; 
+        }
+        select {
+            background: #21262d;
+            color: white;
+            width: 100%;
         }
         button { 
             background: #58a6ff; 
@@ -95,7 +100,7 @@
             border-radius: 12px;
             font-size: 1.0em;
             line-height: 1.5;
-            min-height: 150px; /* Увеличил минимальную высоту */
+            min-height: 150px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -178,6 +183,108 @@
         .alert-min { animation: flash 0.8s infinite; background: #166534 !important; color: white; }
         .alert-max { animation: flash 0.8s infinite; background: #7f1d1d !important; color: white; }
         @keyframes flash { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        /* Стили для PnL */
+        .pnl-section {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #30363d;
+        }
+
+        .pnl-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+
+        .pnl-label {
+            font-weight: 600;
+        }
+
+        .pnl-value {
+            font-weight: bold;
+        }
+
+        /* Новая улучшенная структура для блока "Моя позиция" */
+        .position-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .position-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch; /* Выравнивание по высоте */
+            gap: 10px;
+        }
+
+        .position-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 80px; /* Фиксированная минимальная высота для выравнивания */
+        }
+
+        .position-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #ffa657;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .position-subtitle {
+            font-size: 0.8em;
+            color: #8b949e;
+            margin-bottom: 3px;
+            text-align: center;
+        }
+
+        .position-input {
+            width: 100%;
+            max-width: 120px;
+            margin: 0 auto;
+        }
+
+        .exchange-select {
+            width: 100%;
+            max-width: 120px;
+            margin: 0 auto;
+        }
+
+        /* Новый блок для размера позиции */
+        .position-size-row {
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .position-size-label {
+            font-size: 0.9em;
+            color: #8b949e;
+            margin-bottom: 5px;
+        }
+
+        .position-size-input {
+            width: 150px;
+            margin: 0 auto;
+        }
+
+        /* Стили для блока "Текущий профит" */
+        .profit-spread {
+            margin-bottom: 15px;
+        }
+
+        .market-spread {
+            margin-bottom: 15px;
+        }
+
+        .usdt-pnl {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #30363d;
+        }
     </style>
 </head>
 <body>
@@ -191,7 +298,7 @@
     <div class="wrapper">
         <!-- 1. LIVE спред -->
         <div class="block">
-            <h2>LIVE спред</h2>
+            <h2>LIVE Spread</h2>
             <input type="text" id="ticker" placeholder="Введите тикер" autofocus>
             <div style="margin:10px 0; font-size: 0.9em;">
                 ≤ <input type="number" id="min-alert" step="0.01" value="0.80" style="width:70px;"> %
@@ -204,18 +311,49 @@
 
         <!-- 2. Моя позиция -->
         <div class="block">
-            <h2>Моя позиция</h2>
-            <div style="font-size: 0.9em;">ЛОНГ вход:</div>
-            <input type="number" step="0.000001" id="long-price" placeholder="0.146638">
-            <div style="font-size: 0.9em;">ШОРТ вход:</div>
-            <input type="number" step="0.000001" id="short-price" placeholder="0.148440">
+            <h2>My Position</h2>
+            
+            <div class="position-container">
+                <!-- Long позиция -->
+                <div class="position-row">
+                    <div class="position-section">
+                        <div class="position-title">Long</div>
+                        <div class="position-subtitle">Биржа</div>
+                        <select id="long-exchange" class="exchange-select">
+                            <option value="bybit">Bybit</option>
+                            <option value="binance">Binance</option>
+                        </select>
+                        <div class="position-subtitle">Вход</div>
+                        <input type="number" step="0.000001" id="long-price" placeholder="0.146638" class="position-input">
+                    </div>
+                    
+                    <!-- Short позиция -->
+                    <div class="position-section">
+                        <div class="position-title">Short</div>
+                        <div class="position-subtitle">Биржа</div>
+                        <select id="short-exchange" class="exchange-select">
+                            <option value="bybit">Bybit</option>
+                            <option value="binance" selected>Binance</option>
+                        </select>
+                        <div class="position-subtitle">Вход</div>
+                        <input type="number" step="0.000001" id="short-price" placeholder="0.148440" class="position-input">
+                    </div>
+                </div>
+
+                <!-- Размер позиции -->
+                <div class="position-size-row">
+                    <div class="position-size-label">Размер позиции (монеты)</div>
+                    <input type="number" id="position-size" placeholder="150000" class="position-size-input">
+                </div>
+            </div>
+            
             <button onclick="calcMySpread()">РАССЧИТАТЬ</button>
             <div class="content" id="my-result">—</div>
         </div>
 
         <!-- 3. Текущий профит -->
         <div class="block">
-            <h2>Текущий профит</h2>
+            <h2>Current Profit</h2>
             <div class="content" id="profit-result">
                 Запусти мониторинг и введи позицию
             </div>
@@ -278,7 +416,7 @@ function msToTime(ms) {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
-// Остальной код остается без изменений
+// Остальной код
 let audioContext;
 function playBeep(freq = 600, duration = 300) {
     if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -299,7 +437,10 @@ let monitorActive = false;
 let lastPrices = { bybit: null, binance: null };
 let myLongPrice = 0;
 let myShortPrice = 0;
+let myLongExchange = 'bybit';
+let myShortExchange = 'binance';
 let mySpread = 0;
+let positionSize = 0;
 
 async function getPrices(symbol) {
     try {
@@ -336,6 +477,188 @@ function getInterval(nextTime) {
     return "8-часовой";
 }
 
+// Функция для получения текущей цены по выбранной бирже
+function getCurrentPrice(exchange) {
+    if (exchange === 'bybit') {
+        return lastPrices.bybit;
+    } else if (exchange === 'binance') {
+        return lastPrices.binance;
+    }
+    return null;
+}
+
+// Функция для получения данных фандинга по выбранной бирже
+function getFundingData(exchange, data) {
+    if (exchange === 'bybit') {
+        return {
+            rate: data.bybitRate,
+            nextTime: data.bybitNext,
+            time: msToTime(data.bybitNext - Date.now()),
+            interval: getInterval(data.bybitNext)
+        };
+    } else if (exchange === 'binance') {
+        return {
+            rate: data.binanceRate,
+            nextTime: data.binanceNext,
+            time: msToTime(data.binanceNext - Date.now()),
+            interval: getInterval(data.binanceNext)
+        };
+    }
+    return null;
+}
+
+// Функция для расчета PnL с учетом выбранных бирж
+function calculatePnL() {
+    if (!myLongPrice || !myShortPrice || !lastPrices.bybit || !lastPrices.binance) {
+        return null;
+    }
+
+    // Получаем текущие цены для выбранных бирж
+    const longCurrentPrice = getCurrentPrice(myLongExchange);
+    const shortCurrentPrice = getCurrentPrice(myShortExchange);
+    
+    if (!longCurrentPrice || !shortCurrentPrice) return null;
+
+    // PnL для лонга: (текущая цена - цена входа) / цена входа * 100%
+    const longPnLPercent = ((longCurrentPrice - myLongPrice) / myLongPrice * 100).toFixed(3);
+    
+    // PnL для шорта: (цена входа - текущая цена) / цена входа * 100%
+    const shortPnLPercent = ((myShortPrice - shortCurrentPrice) / myShortPrice * 100).toFixed(3);
+    
+    // Расчет PnL в USDT
+    let longPnLUsdt = 0;
+    let shortPnLUsdt = 0;
+    let totalPnLUsdt = 0;
+    
+    if (positionSize > 0) {
+        longPnLUsdt = (longCurrentPrice - myLongPrice) * positionSize;
+        shortPnLUsdt = (myShortPrice - shortCurrentPrice) * positionSize;
+        totalPnLUsdt = longPnLUsdt + shortPnLUsdt;
+    }
+    
+    return {
+        longPnLPercent: longPnLPercent,
+        shortPnLPercent: shortPnLPercent,
+        longCurrentPrice: longCurrentPrice,
+        shortCurrentPrice: shortCurrentPrice,
+        longPnLUsdt: longPnLUsdt,
+        shortPnLUsdt: shortPnLUsdt,
+        totalPnLUsdt: totalPnLUsdt
+    };
+}
+
+// Обновленная функция для отображения позиции с PnL
+function updatePositionDisplay() {
+    if (!myLongPrice || !myShortPrice) {
+        document.getElementById('my-result').innerHTML = 'Введи обе цены';
+        return;
+    }
+
+    const pnlData = calculatePnL();
+    
+    let pnlHtml = '';
+    if (pnlData) {
+        pnlHtml = `
+            <div class="pnl-section">
+                <div class="pnl-line">
+                    <span class="pnl-label">Long PnL (${myLongExchange.toUpperCase()}):</span>
+                    <span class="pnl-value" style="color:${pnlData.longPnLPercent >= 0 ? '#56d364' : '#ff7b72'}">
+                        ${pnlData.longPnLPercent >= 0 ? '+' : ''}${pnlData.longPnLPercent}%
+                    </span>
+                </div>
+                <div class="pnl-line">
+                    <span class="pnl-label">Short PnL (${myShortExchange.toUpperCase()}):</span>
+                    <span class="pnl-value" style="color:${pnlData.shortPnLPercent >= 0 ? '#56d364' : '#ff7b72'}">
+                        ${pnlData.shortPnLPercent >= 0 ? '+' : ''}${pnlData.shortPnLPercent}%
+                    </span>
+                </div>
+                <div class="pnl-line">
+                    <span class="pnl-label">Текущая цена Long:</span>
+                    <span class="pnl-value">${pnlData.longCurrentPrice.toFixed(6)}</span>
+                </div>
+                <div class="pnl-line">
+                    <span class="pnl-label">Текущая цена Short:</span>
+                    <span class="pnl-value">${pnlData.shortCurrentPrice.toFixed(6)}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    document.getElementById('my-result').innerHTML = `
+        <div>Long (${myLongExchange.toUpperCase()}) ${myLongPrice}</div>
+        <div>Short (${myShortExchange.toUpperCase()}) ${myShortPrice}</div>
+        <div class="my-spread-num" style="color:${mySpread > 0 ? '#56d364' : '#ff7b72'}">
+            ${mySpread > 0 ? '+' : ''}${mySpread}%
+        </div>
+        ${pnlHtml}
+    `;
+}
+
+// Функция для расчета рыночного спреда между выбранными биржами
+function calculateMarketSpread() {
+    if (!lastPrices.bybit || !lastPrices.binance) return null;
+    
+    const longCurrentPrice = getCurrentPrice(myLongExchange);
+    const shortCurrentPrice = getCurrentPrice(myShortExchange);
+    
+    if (!longCurrentPrice || !shortCurrentPrice) return null;
+    
+    // Рыночный спред: (текущая цена шорта - текущая цена лонга) / текущая цена лонга * 100%
+    const marketSpread = ((shortCurrentPrice - longCurrentPrice) / longCurrentPrice * 100).toFixed(3);
+    
+    return marketSpread;
+}
+
+// Функция для обновления Funding Info с учетом выбранных бирж
+function updateFundingInfo(data) {
+    if (!data) return;
+    
+    // Получаем данные фандинга для выбранных бирж
+    const longFunding = getFundingData(myLongExchange, data);
+    const shortFunding = getFundingData(myShortExchange, data);
+    
+    if (!longFunding || !shortFunding) return;
+    
+    // Рассчитываем спред фандинга с учетом позиций
+    // Для лонга мы платим фандинг, для шорта получаем
+    // Поэтому общий эффект: funding_short - funding_long
+    const fundingSpread = (shortFunding.rate - longFunding.rate).toFixed(4);
+    
+    // Чистый фандинг за круг (минус комиссия 0.25%)
+    const netFunding = (fundingSpread - 0.25).toFixed(4);
+    
+    document.getElementById('funding-result').innerHTML = `
+        <div class="funding-line">
+            <span class="funding-label">Long funding (${myLongExchange.toUpperCase()}):</span>
+            <span class="funding-value funding-${longFunding.rate >= 0 ? 'positive' : 'negative'}">
+                ${longFunding.rate.toFixed(5)}%
+            </span>
+        </div>
+        <div class="funding-line">
+            <span class="funding-label">→ через</span>
+            <span class="funding-value">${longFunding.time} (${longFunding.interval})</span>
+        </div>
+        <div class="funding-line">
+            <span class="funding-label">Short funding (${myShortExchange.toUpperCase()}):</span>
+            <span class="funding-value funding-${shortFunding.rate >= 0 ? 'positive' : 'negative'}">
+                ${shortFunding.rate.toFixed(5)}%
+            </span>
+        </div>
+        <div class="funding-line">
+            <span class="funding-label">→ через</span>
+            <span class="funding-value">${shortFunding.time} (${shortFunding.interval})</span>
+        </div>
+        <div class="funding-summary">
+            Спред фандинга (short - long): <strong style="color:${fundingSpread > 0 ? '#56d364' : '#ff7b72'}">
+                ${fundingSpread > 0 ? '+' : ''}${fundingSpread}%
+            </strong><br>
+            Чистый за круг (минус 0.25%): <strong style="color:${netFunding > 0 ? '#56d364' : '#ff7b72'}">
+                ${netFunding > 0 ? '+' : ''}${netFunding}%
+            </strong>
+        </div>
+    `;
+}
+
 async function monitorLoop() {
     if (!monitorActive) return;
 
@@ -353,6 +676,7 @@ async function monitorLoop() {
     if (data.bybitPrice !== lastPrices.bybit || data.binancePrice !== lastPrices.binance) {
         lastPrices = { bybit: data.bybitPrice, binance: data.binancePrice };
 
+        // Расчет спреда между Bybit и Binance (для блока LIVE спред)
         const diff = ((data.bybitPrice - data.binancePrice) / data.binancePrice * 100);
         const absDiff = Math.abs(diff).toFixed(3);
         const sign = diff > 0 ? '+' : '';
@@ -382,38 +706,12 @@ async function monitorLoop() {
             ${extra}
         `;
 
-        // Funding Info
-        const fundingDiff = Math.abs(data.bybitRate - data.binanceRate).toFixed(4);
-        const netFunding = (fundingDiff - 0.25).toFixed(4);
-        const bybitTime = msToTime(data.bybitNext - Date.now());
-        const binanceTime = msToTime(data.binanceNext - Date.now());
-        const bybitInterval = getInterval(data.bybitNext);
-        const binanceInterval = getInterval(data.binanceNext);
+        // Обновляем Funding Info с учетом выбранных бирж
+        updateFundingInfo(data);
 
-        document.getElementById('funding-result').innerHTML = `
-    <div class="funding-line">
-        <span class="funding-label">Bybit funding:</span>
-        <span class="funding-value funding-${data.bybitRate >= 0 ? 'positive' : 'negative'}">${data.bybitRate.toFixed(5)}%</span>
-    </div>
-    <div class="funding-line">
-        <span class="funding-label">→ через</span>
-        <span class="funding-value">${bybitTime} (${bybitInterval})</span>
-    </div>
-    <div class="funding-line">
-        <span class="funding-label">Binance funding:</span>
-        <span class="funding-value funding-${data.binanceRate >= 0 ? 'positive' : 'negative'}">${data.binanceRate.toFixed(5)}%</span>
-    </div>
-    <div class="funding-line">
-        <span class="funding-label">→ через</span>
-        <span class="funding-value">${binanceTime} (${binanceInterval})</span>
-    </div>
-    <div class="funding-summary">
-        Спред фандинга: <strong>${fundingDiff}%</strong><br>
-        Чистый за круг: <strong style="color:${netFunding > 0 ? '#56d364' : '#ff7b72'}">${netFunding > 0 ? '+' : ''}${netFunding}%</strong>
-    </div>
-`;
-        // Профит
-        updateProfit(absDiff);
+        // Обновляем PnL и профит
+        updatePositionDisplay();
+        updateProfit();
     }
 
     setTimeout(monitorLoop, 800);
@@ -422,50 +720,88 @@ async function monitorLoop() {
 function calcMySpread() {
     const longPrice = parseFloat(document.getElementById('long-price').value);
     const shortPrice = parseFloat(document.getElementById('short-price').value);
+    const longExchange = document.getElementById('long-exchange').value;
+    const shortExchange = document.getElementById('short-exchange').value;
+    const size = parseFloat(document.getElementById('position-size').value);
 
     if (!longPrice || !shortPrice) {
         document.getElementById('my-result').innerHTML = 'Введи обе цены';
         mySpread = 0;
-        updateProfit(0);
+        updateProfit();
         return;
     }
 
     myLongPrice = longPrice;
     myShortPrice = shortPrice;
+    myLongExchange = longExchange;
+    myShortExchange = shortExchange;
+    positionSize = size || 0;
+    
+    // Спред рассчитывается как разница между ценами входа
     mySpread = ((shortPrice - longPrice) / longPrice * 100).toFixed(3);
 
-    document.getElementById('my-result').innerHTML = `
-        <div>ЛОНГ ${longPrice}</div>
-        <div>ШОРТ ${shortPrice}</div>
-        <div class="my-spread-num" style="color:${mySpread > 0 ? '#56d364' : '#ff7b72'}">
-            ${mySpread > 0 ? '+' : ''}${mySpread}%
-        </div>
-    `;
-
-    if (monitorActive && lastPrices.bybit && lastPrices.binance) {
-        const currentDiff = ((lastPrices.bybit - lastPrices.binance) / lastPrices.binance * 100);
-        updateProfit(Math.abs(currentDiff).toFixed(3));
-    }
+    // Обновляем отображение позиции с PnL
+    updatePositionDisplay();
+    updateProfit();
 }
 
-function updateProfit(currentAbsSpread) {
+function updateProfit() {
     if (mySpread === 0) {
         document.getElementById('profit-result').innerHTML = 'Введи свою позицию';
         return;
     }
 
-    const profit = (mySpread - currentAbsSpread).toFixed(3);
+    // Получаем рыночный спред между выбранными биржами
+    const marketSpread = calculateMarketSpread();
+    
+    if (!marketSpread) {
+        document.getElementById('profit-result').innerHTML = 'Нет данных по ценам';
+        return;
+    }
+
+    // Профит = наш спред - текущий рыночный спред
+    const profit = (mySpread - marketSpread).toFixed(3);
     const color = profit > 0 ? '#56d364' : '#ff7b72';
 
+    // Расчет PnL в USDT
+    const pnlData = calculatePnL();
+    let usdtHtml = '';
+    
+    if (pnlData && positionSize > 0) {
+        usdtHtml = `
+            <div class="usdt-pnl">
+                <div class="pnl-line">
+                    <span class="pnl-label">Long PnL (USDT):</span>
+                    <span class="pnl-value" style="color:${pnlData.longPnLUsdt >= 0 ? '#56d364' : '#ff7b72'}">
+                        ${pnlData.longPnLUsdt >= 0 ? '+' : ''}${pnlData.longPnLUsdt.toFixed(2)} USDT
+                    </span>
+                </div>
+                <div class="pnl-line">
+                    <span class="pnl-label">Short PnL (USDT):</span>
+                    <span class="pnl-value" style="color:${pnlData.shortPnLUsdt >= 0 ? '#56d364' : '#ff7b72'}">
+                        ${pnlData.shortPnLUsdt >= 0 ? '+' : ''}${pnlData.shortPnLUsdt.toFixed(2)} USDT
+                    </span>
+                </div>
+                <div class="pnl-line">
+                    <span class="pnl-label">Total PnL (USDT):</span>
+                    <span class="pnl-value" style="color:${pnlData.totalPnLUsdt >= 0 ? '#56d364' : '#ff7b72'}">
+                        ${pnlData.totalPnLUsdt >= 0 ? '+' : ''}${pnlData.totalPnLUsdt.toFixed(2)} USDT
+                    </span>
+                </div>
+            </div>
+        `;
+    }
+
     document.getElementById('profit-result').innerHTML = `
-        <div>Твой спред: <strong style="color:#7ffe94">${mySpread > 0 ? '+' : ''}${mySpread}%</strong></div>
-        <div>Рыночный: <strong>${currentAbsSpread}%</strong></div>
+        <div class="profit-spread">Твой спред: <strong style="color:#7ffe94">${mySpread > 0 ? '+' : ''}${mySpread}%</strong></div>
+        <div class="market-spread">Рыночный спред (${myLongExchange.toUpperCase()}→${myShortExchange.toUpperCase()}): <strong>${marketSpread > 0 ? '+' : ''}${marketSpread}%</strong></div>
         <div class="current-profit-num" style="color:${color}">
             ${profit > 0 ? '+' : ''}${profit}%
         </div>
         <div style="margin-top:8px;">
             ${profit > 0 ? 'Можно закрывать!' : 'Ждём схлопывания'}
         </div>
+        ${usdtHtml}
     `;
 }
 
