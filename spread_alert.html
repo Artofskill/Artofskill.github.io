@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spread Alert by Artofskill</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 20px; }
+        h1 { text-align: center; color: #58a6ff; font-size: 2em; margin-bottom: 30px; }
+
+        /* 4 блока в ряд, шире и комфортнее */
+        .wrapper { 
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 22px;
+            max-width: 1700px;   /* увеличил ширину */
+            margin: 0 auto;
+        }
+
+        .block { 
+            background: #161b22; 
+            padding: 28px; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6); 
+            height: 660px;   /* чуть выше для красоты */
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .block2 { 
+            background: #161b22; 
+            padding: 28px; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6); 
+            height: 660px;   /* чуть выше для красоты */
+            display: flex;
+            flex-direction: column;
+            width: 150%;
+        }
+
+
+        .block h2 { 
+            color: #ffa657; 
+            margin: 0 0 18px 0; 
+            font-size: 1.35em; 
+            text-align: center;
+        }
+
+        input, button { 
+            padding: 12px 16px; 
+            font-size: 16px; 
+            border-radius: 10px; 
+            border: none; 
+            margin: 6px 0; 
+        }
+        input { 
+            background: #21262d; 
+            color: white; 
+            text-align: center; 
+            width: 100%; 
+        }
+        button { 
+            background: #58a6ff; 
+            color: black; 
+            font-weight: bold; 
+            cursor: pointer; 
+        }
+
+        .funding-result {
+    margin-top: 20px;
+    padding: 20px;
+    background: #21262d;
+    border-radius: 12px;
+    font-size: 1.3em;
+    line-height: 1.7;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.funding-line {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    padding: 0 10px;
+}
+
+.funding-label {
+    color: #ffa657;
+    font-weight: 600;
+}
+
+.funding-value {
+    font-weight: bold;
+}
+
+.funding-positive { color: #56d364; }
+.funding-negative { color: #ff7b72; }
+
+.funding-summary {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #30363d;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+        button:hover { background: #79c0ff; }
+        button.stop { background: #ff4444; }
+        button.stop:hover { background: #ff6666; }
+
+        .content { 
+            flex: 1; 
+            background: #21262d; 
+            border-radius: 12px; 
+            padding: 20px; 
+            font-size: 1.45em; 
+            line-height: 1.7; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+        }
+
+        .ticker-big { font-size: 2.1em; font-weight: 700; color: #58a6ff; margin-bottom: 10px; }
+        .spread-big { font-size: 3.6em; font-weight: 700; margin: 15px 0; }
+        .positive { color: #56d364; }
+        .negative { color: #ff7b72; }
+
+        .alert-min { animation: flash 0.8s infinite; background: #166534 !important; color: white; }
+        .alert-max { animation: flash 0.8s infinite; background: #7f1d1d !important; color: white; }
+        @keyframes flash { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        .my-spread-num { font-size: 3.5em; font-weight: 700; color: #7ffe94; margin: 15px 0; }
+        .current-profit-num { font-size: 4.2em; font-weight: 700; margin: 20px 0; }
+
+        .footer { text-align: center; color: #888; margin-top: 40px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>Spread Alert by Artofskill</h1>
+
+    <div class="wrapper">
+        <!-- 1. LIVE спред -->
+        <div class="block">
+            <h2>LIVE спред</h2>
+            <input type="text" id="ticker" placeholder="SOON" autofocus>
+            <div style="margin:15px 0;">
+                ≤ <input type="number" id="min-alert" step="0.01" value="0.80" style="width:85px;"> %
+                ≥ <input type="number" id="max-alert" step="0.01" value="2.00" style="width:85px;"> %
+            </div>
+            <button id="start-btn" onclick="startMonitoring()">СТАРТ</button>
+            <button id="stop-btn" onclick="stopMonitoring()" style="display:none;">СТОП</button>
+            <div class="content" id="result">Готов к запуску</div>
+        </div>
+
+        <!-- 2. Моя позиция -->
+        <div class="block">
+            <h2>Моя позиция</h2>
+            <div>ЛОНГ вход:</div>
+            <input type="number" step="0.000001" id="long-price" placeholder="0.146638">
+            <div>ШОРТ вход:</div>
+            <input type="number" step="0.000001" id="short-price" placeholder="0.148440">
+            <button onclick="calcMySpread()">РАССЧИТАТЬ</button>
+            <div class="content" id="my-result">—</div>
+        </div>
+
+        <!-- 3. Текущий профит -->
+        <div class="block">
+            <h2>Текущий профит</h2>
+            <div class="content" id="profit-result">
+                Запусти мониторинг и введи позицию
+            </div>
+        </div>
+
+        <!-- 4. Funding Info -->
+        <div class="block2">
+            <h2>Funding Info</h2>
+            <div class="funding-result" id="funding-result">
+                Запусти мониторинг
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <span id="clock"></span>
+    </div>
+
+<script>
+// (весь скрипт из предыдущей версии — работает идеально, просто блоки стали шире и выше)
+
+let audioContext;
+function playBeep(freq = 600, duration = 300) {
+    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioContext.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const gain = audioContext.createGain();
+    gain.gain.value = 0.3;
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.start();
+    osc.stop(audioContext.currentTime + duration/1000);
+}
+function playLow() { playBeep(400, 500); setTimeout(() => playBeep(400, 500), 600); }
+function playHigh() { playBeep(900, 200); setTimeout(() => playBeep(900, 200), 300); setTimeout(() => playBeep(900, 200), 600); }
+
+let monitorActive = false;
+let lastPrices = { bybit: null, binance: null };
+let myLongPrice = 0;
+let myShortPrice = 0;
+let mySpread = 0;
+
+async function getPrices(symbol) {
+    try {
+        const [bybitResp, binanceResp] = await Promise.all([
+            fetch('https://api.bybit.com/v5/market/tickers?category=linear'),
+            fetch('https://fapi.binance.com/fapi/v1/premiumIndex')
+        ]);
+        const bybitData = await bybitResp.json();
+        const binanceData = await binanceResp.json();
+
+        const bybitTicker = bybitData.result.list.find(t => t.symbol === symbol);
+        const binanceTicker = binanceData.find(t => t.symbol === symbol);
+
+        if (!bybitTicker || !binanceTicker) return null;
+
+        return {
+            bybitPrice: parseFloat(bybitTicker.markPrice || bybitTicker.lastPrice),
+            binancePrice: parseFloat(binanceTicker.markPrice),
+            bybitRate: parseFloat(bybitTicker.fundingRate) * 100,
+            binanceRate: parseFloat(binanceTicker.lastFundingRate) * 100,
+            bybitNext: parseInt(bybitTicker.nextFundingTime),
+            binanceNext: parseInt(binanceTicker.nextFundingTime)
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
+function msToTime(ms) {
+    if (ms <= 0) return "УЖЕ!";
+    const totalMin = Math.floor(ms / 60000);
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return `${h}ч ${m.toString().padStart(2, '0')}м`;
+}
+
+function getInterval(nextTime) {
+    const now = Date.now();
+    const diff = (nextTime - now) / 3600000;
+    if (Math.abs(diff - 1) < 0.5 || Math.abs(diff - 25) < 0.5) return "1-часовой";
+    if (Math.abs(diff - 4) < 0.5 || Math.abs(diff - 28) < 0.5) return "4-часовой";
+    return "8-часовой";
+}
+
+async function monitorLoop() {
+    if (!monitorActive) return;
+
+    const symbol = document.getElementById('ticker').value.trim().toUpperCase() + 'USDT';
+    const minAlert = parseFloat(document.getElementById('min-alert').value) || 0;
+    const maxAlert = parseFloat(document.getElementById('max-alert').value) || 999;
+
+    const data = await getPrices(symbol);
+    if (!data) {
+        document.getElementById('result').innerHTML = `<span style="color:#ff7b72">Пара не найдена</span>`;
+        setTimeout(monitorLoop, 3000);
+        return;
+    }
+
+    if (data.bybitPrice !== lastPrices.bybit || data.binancePrice !== lastPrices.binance) {
+        lastPrices = { bybit: data.bybitPrice, binance: data.binancePrice };
+
+        const diff = ((data.bybitPrice - data.binancePrice) / data.binancePrice * 100);
+        const absDiff = Math.abs(diff).toFixed(3);
+        const sign = diff > 0 ? '+' : '';
+
+        let extra = '';
+        let className = '';
+
+        if (absDiff <= minAlert && minAlert > 0) {
+            playLow();
+            className = 'alert-min';
+            extra = '<br>СПРЕД ≤ МИНИМУМ!';
+        }
+        if (absDiff >= maxAlert) {
+            playHigh();
+            className = 'alert-max';
+            extra = '<br>СПРЕД ≥ МАКСИМУМ!';
+        }
+
+        document.getElementById('result').className = 'result ' + className;
+        document.getElementById('result').innerHTML = `
+            <div class="ticker-big">${symbol.replace('USDT','')}</div>
+            Bybit: <strong>${data.bybitPrice.toFixed(6)}</strong><br>
+            Binance: <strong>${data.binancePrice.toFixed(6)}</strong><br><br>
+            <span class="spread-big" style="color:${diff >= 0 ? '#56d364' : '#ff7b72'}">
+                ${sign}${absDiff}%
+            </span>
+            ${extra}
+        `;
+
+        // Funding Info
+        const fundingDiff = Math.abs(data.bybitRate - data.binanceRate).toFixed(4);
+        const netFunding = (fundingDiff - 0.14).toFixed(4);
+        const bybitTime = msToTime(data.bybitNext - Date.now());
+        const binanceTime = msToTime(data.binanceNext - Date.now());
+        const bybitInterval = getInterval(data.bybitNext);
+        const binanceInterval = getInterval(data.binanceNext);
+
+document.getElementById('funding-result').innerHTML = `
+    <div class="funding-line">
+        <span class="funding-label">Bybit funding:</span>
+        <span class="funding-value funding-${data.bybitRate >= 0 ? 'positive' : 'negative'}">${data.bybitRate.toFixed(5)}%</span>
+    </div>
+    <div class="funding-line">
+        <span class="funding-label">→ через</span>
+        <span class="funding-value">${bybitTime} (${bybitInterval})</span>
+    </div>
+    <div class="funding-line">
+        <span class="funding-label">Binance funding:</span>
+        <span class="funding-value funding-${data.binanceRate >= 0 ? 'positive' : 'negative'}">${data.binanceRate.toFixed(5)}%</span>
+    </div>
+    <div class="funding-line">
+        <span class="funding-label">→ через</span>
+        <span class="funding-value">${binanceTime} (${binanceInterval})</span>
+    </div>
+    <div class="funding-summary">
+        Спред фандинга: <strong>${fundingDiff}%</strong><br>
+        Чистый за круг минус комса 0,14%: <strong style="color:${netFunding > 0 ? '#56d364' : '#ff7b72'}">${netFunding > 0 ? '+' : ''}${netFunding}%</strong>
+    </div>
+`;
+        // Профит
+        updateProfit(absDiff);
+    }
+
+    setTimeout(monitorLoop, 800);
+}
+
+function calcMySpread() {
+    const longPrice = parseFloat(document.getElementById('long-price').value);
+    const shortPrice = parseFloat(document.getElementById('short-price').value);
+
+    if (!longPrice || !shortPrice) {
+        document.getElementById('my-result').innerHTML = 'Введи обе цены';
+        mySpread = 0;
+        updateProfit(0);
+        return;
+    }
+
+    myLongPrice = longPrice;
+    myShortPrice = shortPrice;
+    mySpread = ((shortPrice - longPrice) / longPrice * 100).toFixed(3);
+
+    document.getElementById('my-result').innerHTML = `
+        <div style="font-size:1.4em;">ЛОНГ ${longPrice}</div>
+        <div style="font-size:1.4em;">ШОРТ ${shortPrice}</div>
+        <div class="my-spread-num" style="color:${mySpread > 0 ? '#56d364' : '#ff7b72'}">
+            ${mySpread > 0 ? '+' : ''}${mySpread}%
+        </div>
+    `;
+
+    if (monitorActive && lastPrices.bybit && lastPrices.binance) {
+        const currentDiff = ((lastPrices.bybit - lastPrices.binance) / lastPrices.binance * 100);
+        updateProfit(Math.abs(currentDiff).toFixed(3));
+    }
+}
+
+function updateProfit(currentAbsSpread) {
+    if (mySpread === 0) {
+        document.getElementById('profit-result').innerHTML = 'Введи свою позицию';
+        return;
+    }
+
+    const profit = (mySpread - currentAbsSpread).toFixed(3);
+    const color = profit > 0 ? '#56d364' : '#ff7b72';
+
+    document.getElementById('profit-result').innerHTML = `
+        <div>Твой спред: <strong style="color:#7ffe94">${mySpread > 0 ? '+' : ''}${mySpread}%</strong></div>
+        <div>Рыночный: <strong>${currentAbsSpread}%</strong></div>
+        <div class="current-profit-num" style="color:${color}">
+            ПРОФИТ: <strong>${profit > 0 ? '+' : ''}${profit}%</strong>
+        </div>
+        <div style="margin-top:10px;">
+            ${profit > 0 ? 'Можно закрывать с профитом!' : 'Ждём схлопывания спреда'}
+        </div>
+    `;
+}
+
+function startMonitoring() {
+    if (monitorActive) return;
+    const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+    if (!ticker) return alert('Введи-ru тикер!');
+    monitorActive = true;
+    document.getElementById('start-btn').style.display = 'none';
+    document.getElementById('stop-btn').style.display = 'inline-block';
+    document.getElementById('result').innerHTML = 'Загрузка...';
+    document.getElementById('funding-result').innerHTML = 'Загрузка...';
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    lastPrices = { bybit: null, binance: null };
+    monitorLoop();
+}
+
+function stopMonitoring() {
+    monitorActive = false;
+    document.getElementById('start-btn').style.display = 'inline-block';
+    document.getElementById('stop-btn').style.display = 'none';
+    document.getElementById('result').innerHTML = 'Остановлено';
+    document.getElementById('result').className = 'result';
+    document.getElementById('funding-result').innerHTML = 'Остановлено';
+    document.getElementById('profit-result').innerHTML = 'Мониторинг остановлен';
+}
+
+setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleString('ru-RU'), 1000);
+</script>
+</body>
+</html>
