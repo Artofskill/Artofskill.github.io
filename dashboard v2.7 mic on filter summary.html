@@ -24,8 +24,12 @@
         tr:hover { background: #21262d; }
         .ticker { color: #58a6ff; font-weight: bold; cursor: pointer; text-decoration: underline; }
         .ticker:hover { color: #79c0ff; }
-        .chart-btn { background: #30363d; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin: 0 2px; }
-        .chart-btn:hover { background: #58a6ff; color: black; font-weight: bold; }
+
+        .by-btn { background: #21262d; color: white; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin: 0 2px; }
+        .by-btn:hover { background: #58a6ff; color: black; font-weight: bold; }
+        .bn-btn { background: #21262d; color: #ffa657; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin: 0 2px; }
+        .bn-btn:hover { background: #58a6ff; color: black; font-weight: bold; }
+
         .calc-btn { background: #8b5cf6; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; }
         .calc-btn:hover { background: #c084fc; color: black; font-weight: bold; }
 
@@ -61,7 +65,7 @@
 
     <!-- Фильтр звука -->
     <div class="sound-control">
-        Звук при Итого ≥ <input type="number" id="sound-threshold" step="0.1" value="0.5" style="width:90px;"> %
+        Звук при Итого ≥ <input type="number" id="sound-threshold" step="0.1" value="2.5" style="width:90px;"> %
     </div>
 
     <div class="spread-calc">
@@ -75,7 +79,8 @@
         <thead>
             <tr>
                 <th>Пара</th>
-                <th>TV</th>
+                <th>By</th>
+                <th>Bn</th>
                 <th>Calc</th>
                 <th>Спред 8ч</th>
                 <th>Чистый</th>
@@ -95,7 +100,7 @@
 
     <div class="footer">
         Клик по паре — копирует тикер | Shift+клик — с USDT | Calc — полный анализ<br>
-        Звук при достижении порога Итого (настраивается выше)<br>
+        By — график Bybit | Bn — график Binance<br>
         <span id="clock"></span>
     </div>
 
@@ -126,14 +131,13 @@ function playAlert() {
     }, 250);
 }
 
-// Постоянный звон колокольчиком, пока есть монеты выше порога
 let alertInterval = null;
 let alertActive = false;
 
 function startContinuousAlert() {
     if (alertActive) return;
     alertActive = true;
-    alertInterval = setInterval(playAlert, 2000); // каждые 2 секунды
+    alertInterval = setInterval(playAlert, 2000);
 }
 
 function stopContinuousAlert() {
@@ -144,9 +148,12 @@ function stopContinuousAlert() {
 
 let previousBest = -999;
 
-function openCharts(s) { 
-    window.open(`https://www.tradingview.com/chart/?symbol=BINANCE:${s}USDT.P`, '_blank'); 
+function openBybitChart(s) { 
     window.open(`https://www.tradingview.com/chart/?symbol=BYBIT:${s}USDT`, '_blank'); 
+}
+
+function openBinanceChart(s) { 
+    window.open(`https://www.tradingview.com/chart/?symbol=BINANCE:${s}USDT.P`, '_blank'); 
 }
 
 function copyTicker(ticker, withUSDT = false) {
@@ -177,7 +184,7 @@ async function calcSpread() {
     const longOnBybit = byRate < bnRate;
 
     const fundingSpread = Math.abs(byRate - bnRate);
-    const netFunding = fundingSpread - 0.14;
+    const netFunding = fundingSpread - 0.25;
     const entryBonus = longOnBybit ? (bnPrice - byPrice) / byPrice * 100 : (byPrice - bnPrice) / bnPrice * 100;
     const totalProfit = netFunding + entryBonus;
 
@@ -252,7 +259,7 @@ async function update() {
             const longOnBybit = br < bn;
 
             const fundingSpread = Math.abs(br - bn);
-            const netFunding = fundingSpread - 0.14;
+            const netFunding = fundingSpread - 0.25;
             const entryBonus = longOnBybit ? (bnPrice - byPrice) / byPrice * 100 : (byPrice - bnPrice) / bnPrice * 100;
 
             if (Math.abs(entryBonus) > 5) continue;
@@ -273,7 +280,8 @@ async function update() {
             rows.push({totalProfit, html: `
                 <tr class="${rowClass}">
                     <td><span class="ticker" onclick="if(event.shiftKey) copyTicker('${ticker}', true); else copyTicker('${ticker}');">${ticker}</span></td>
-                    <td><span class="chart-btn" onclick="openCharts('${ticker}')">TV</span></td>
+                    <td><span class="by-btn" onclick="openBybitChart('${ticker}')">By</span></td>
+                    <td><span class="bn-btn" onclick="openBinanceChart('${ticker}')">Bn</span></td>
                     <td><span class="calc-btn" onclick="document.getElementById('ticker-input').value='${ticker}'; calcSpread();">Calc</span></td>
                     <td>${fundingSpread.toFixed(4)}%</td>
                     <td class="${netFunding >= 0.1 ? 'lime' : netFunding >= 0 ? 'green' : 'red'}">${netFunding > 0 ? '+' : ''}${netFunding.toFixed(4)}%</td>
