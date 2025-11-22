@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Funding Arbitrage TERMINAL │ Bybit ↔ Binance</title>
+    <title>Funding Arbitrage TERMINAL by Artofskill │ Bybit ↔ Binance</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 15px; position: relative; }
         h1 { text-align: center; color: #58a6ff; margin: 10px; }
@@ -33,9 +33,9 @@
         .calc-btn { background: #8b5cf6; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; }
         .calc-btn:hover { background: #c084fc; color: black; font-weight: bold; }
 
-        .direction { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; font-weight: bold; }
-        .long { background: #166534; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.9em; }
-        .short { background: #7f1d1d; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.9em; }
+        .direction { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; font-weight: bold; font-size: 0.85em; }
+        .long { background: #166534; color: white; padding: 3px 6px; border-radius: 4px; }
+        .short { background: #7f1d1d; color: white; padding: 3px 6px; border-radius: 4px; }
 
         .real-profit { background: rgba(34, 197, 94, 0.3) !important; animation: realGlow 1.5s infinite alternate; }
         @keyframes realGlow { from { box-shadow: 0 0 15px #34d399; } to { box-shadow: 0 0 25px #34d399; } }
@@ -45,10 +45,56 @@
         .red { color: #ff7b72; font-weight: bold; }
         .footer { text-align: center; color: #8b949e; margin-top: 20px; font-size: 0.9em; }
         .copied { position: fixed; top: 20px; right: 20px; background: #238636; color: white; padding: 15px 30px; border-radius: 12px; z-index: 9999; opacity: 0; transition: opacity 0.4s; font-weight: bold; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        
+        /* Кнопка Spread PNL Calc - оранжевая */
+        .pnl-calc-btn { 
+            padding: 10px 16px; 
+            font-size: 16px; 
+            border-radius: 8px; 
+            border: none; 
+            background: #ffa657; 
+            color: black; 
+            cursor: pointer; 
+            text-decoration: none;
+            display: inline-block;
+            height: 40px;
+            box-sizing: border-box;
+        }
+        .pnl-calc-btn:hover { background: #ffb87a; font-weight: bold; }
+        
+        /* Кнопка открытия/закрытия калькулятора */
+        .toggle-calc-btn {
+            padding: 10px 16px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            margin: 0 5px;
+            height: 40px;
+            box-sizing: border-box;
+        }
+        /* Зеленая кнопка когда калькулятор закрыт */
+        .toggle-calc-btn.calc-closed {
+            background: #238636;
+        }
+        .toggle-calc-btn.calc-closed:hover {
+            background: #2ea043;
+        }
+        /* Красная кнопка когда калькулятор открыт */
+        .toggle-calc-btn.calc-open {
+            background: #da3633;
+        }
+        .toggle-calc-btn.calc-open:hover {
+            background: #f85149;
+        }
+        
+        /* Стили для объемов */
+        .volume { font-size: 0.85em; }
     </style>
 </head>
 <body>
-    <h1>Funding Arbitrage TERMINAL │ Bybit ↔ Binance</h1>
+    <h1>Funding Arbitrage TERMINAL by Artofskill │ Bybit ↔ Binance</h1>
     <div class="update" id="last-update">Обновлено: —</div>
 
     <div class="controls">
@@ -61,6 +107,8 @@
             <option value="9999">ВСЕ</option>
         </select>
         <button onclick="updateNow()">Обновить</button>
+        <button class="toggle-calc-btn calc-closed" onclick="toggleCalculator()">Открыть калькулятор</button>
+        <a href="https://artofskill.github.io/spread_alert.html" target="_blank" class="pnl-calc-btn">Spread PNL Calc</a>
     </div>
 
     <!-- Фильтр звука -->
@@ -68,7 +116,7 @@
         Звук при Итого ≥ <input type="number" id="sound-threshold" step="0.1" value="2.5" style="width:90px;"> %
     </div>
 
-    <div class="spread-calc">
+    <div class="spread-calc" style="display:none;">
         <div style="margin-bottom:10px; color:#ffa657;">Введи тикер (например BTC, PEPE, SOON)</div>
         <input type="text" id="ticker-input" placeholder="SOON" autofocus>
         <button onclick="calcSpread()">Анализ</button>
@@ -83,10 +131,12 @@
                 <th>Bn</th>
                 <th>Calc</th>
                 <th>Спред 8ч</th>
-                <th>Чистый</th>
+                <th>Чистый(FND-0.25%fee)</th>
                 <th>Бонус<br>вход</th>
                 <th>Итого ≈</th>
                 <th>Направление</th>
+                <th>24h/vlm BN</th>
+                <th>24h/vlm BY</th>
                 <th>Bybit<br>цена</th>
                 <th>Binance<br>цена</th>
                 <th>Bybit<br>rate</th>
@@ -165,6 +215,34 @@ function copyTicker(ticker, withUSDT = false) {
     setTimeout(() => el.style.opacity = 0, 1500);
 }
 
+// Функция переключения калькулятора
+function toggleCalculator() {
+    const calc = document.querySelector('.spread-calc');
+    const btn = document.querySelector('.toggle-calc-btn');
+    
+    if (calc.style.display === 'none') {
+        calc.style.display = 'block';
+        btn.textContent = 'Закрыть калькулятор';
+        btn.classList.remove('calc-closed');
+        btn.classList.add('calc-open');
+    } else {
+        calc.style.display = 'none';
+        btn.textContent = 'Открыть калькулятор';
+        btn.classList.remove('calc-open');
+        btn.classList.add('calc-closed');
+    }
+}
+
+// Форматирование объема
+function formatVolume(volume) {
+    if (volume >= 1000000) {
+        return (volume / 1000000).toFixed(2) + 'M';
+    } else if (volume >= 1000) {
+        return (volume / 1000).toFixed(2) + 'K';
+    }
+    return volume.toFixed(2);
+}
+
 async function calcSpread() {
     const input = document.getElementById('ticker-input').value.trim().toUpperCase();
     if (!input) return;
@@ -213,12 +291,17 @@ async function update() {
         const binanceInfo = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo').then(r => r.json());
         const activeSymbols = new Set(binanceInfo.symbols.filter(s => s.status === 'TRADING' && s.contractType === 'PERPETUAL').map(s => s.symbol));
 
-        const [bybitResp, binanceResp] = await Promise.all([
+        const [bybitResp, binanceResp, bybitVolumeResp, binanceVolumeResp] = await Promise.all([
             fetch('https://api.bybit.com/v5/market/tickers?category=linear'),
-            fetch('https://fapi.binance.com/fapi/v1/premiumIndex')
+            fetch('https://fapi.binance.com/fapi/v1/premiumIndex'),
+            fetch('https://api.bybit.com/v5/market/tickers?category=linear'),
+            fetch('https://fapi.binance.com/fapi/v1/ticker/24hr')
         ]);
+        
         const bybitData = await bybitResp.json();
         const binanceData = await binanceResp.json();
+        const bybitVolumeData = await bybitVolumeResp.json();
+        const binanceVolumeData = await binanceVolumeResp.json();
 
         const bybit = {}; 
         bybitData.result.list.forEach(t => { 
@@ -236,6 +319,22 @@ async function update() {
                 next: parseInt(t.nextFundingTime), 
                 price: parseFloat(t.markPrice) 
             }; 
+        });
+
+        // Обработка объемов Bybit
+        const bybitVolumes = {};
+        bybitVolumeData.result.list.forEach(t => {
+            if (t.symbol.endsWith('USDT')) {
+                bybitVolumes[t.symbol] = parseFloat(t.volume24h) * parseFloat(t.markPrice || t.lastPrice);
+            }
+        });
+
+        // Обработка объемов Binance
+        const binanceVolumes = {};
+        binanceVolumeData.forEach(t => {
+            if (t.symbol.endsWith('USDT')) {
+                binanceVolumes[t.symbol] = parseFloat(t.quoteVolume);
+            }
         });
 
         pricesCache = {};
@@ -271,18 +370,23 @@ async function update() {
 
             const rowClass = totalProfit >= parseFloat(document.getElementById('sound-threshold').value) ? 'real-profit' : '';
 
+            // Обновленные направления с короткими обозначениями
             const directionHTML = longOnBybit ?
-                `<div class="direction"><span class="long">ЛОНГ Bybit</span><span class="short">ШОРТ Binance</span></div>` :
-                `<div class="direction"><span class="long">ЛОНГ Binance</span><span class="short">ШОРТ Bybit</span></div>`;
+                `<div class="direction"><span class="long">L BY</span><span class="short">S BN</span></div>` :
+                `<div class="direction"><span class="long">L BN</span><span class="short">S BY</span></div>`;
 
             const timeLeft = ms => { if (ms <= 0) return "УЖЕ!"; const m = Math.floor(ms/60000); return `${Math.floor(m/60)}ч${String(m%60).padStart(2,'0')}м`; };
+
+            // Получение объемов
+            const bnVolume = binanceVolumes[sym] || 0;
+            const byVolume = bybitVolumes[sym] || 0;
 
             rows.push({totalProfit, html: `
                 <tr class="${rowClass}">
                     <td><span class="ticker" onclick="if(event.shiftKey) copyTicker('${ticker}', true); else copyTicker('${ticker}');">${ticker}</span></td>
                     <td><span class="by-btn" onclick="openBybitChart('${ticker}')">By</span></td>
                     <td><span class="bn-btn" onclick="openBinanceChart('${ticker}')">Bn</span></td>
-                    <td><span class="calc-btn" onclick="document.getElementById('ticker-input').value='${ticker}'; calcSpread();">Calc</span></td>
+                    <td><span class="calc-btn" onclick="document.getElementById('ticker-input').value='${ticker}'; document.querySelector('.spread-calc').style.display='block'; document.querySelector('.toggle-calc-btn').textContent='Закрыть калькулятор'; document.querySelector('.toggle-calc-btn').classList.remove('calc-closed'); document.querySelector('.toggle-calc-btn').classList.add('calc-open'); calcSpread();">Calc</span></td>
                     <td>${fundingSpread.toFixed(4)}%</td>
                     <td class="${netFunding >= 0.1 ? 'lime' : netFunding >= 0 ? 'green' : 'red'}">${netFunding > 0 ? '+' : ''}${netFunding.toFixed(4)}%</td>
                     <td class="${entryBonus >= 0.2 ? 'lime' : entryBonus >= 0 ? 'green' : 'red'}">${entryBonus > 0 ? '+' : ''}${entryBonus.toFixed(3)}%</td>
@@ -290,6 +394,8 @@ async function update() {
                         ${totalProfit > 0 ? '+' : ''}${totalProfit.toFixed(4)}%
                     </td>
                     <td>${directionHTML}</td>
+                    <td class="volume">${formatVolume(bnVolume)}</td>
+                    <td class="volume">${formatVolume(byVolume)}</td>
                     <td>${byPrice.toFixed(6)}</td>
                     <td>${bnPrice.toFixed(6)}</td>
                     <td>${br.toFixed(5)}%</td>
@@ -317,7 +423,8 @@ async function update() {
         document.getElementById('tbody').innerHTML = rows.slice(0, limit).map(r => r.html).join('');
         document.getElementById('last-update').innerHTML = `Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
     } catch (e) { 
-        document.getElementById('tbody').innerHTML = `<tr><td colspan="14" style="color:#ff7b72">Ошибка сети</td></tr>`;
+        console.error(e);
+        document.getElementById('tbody').innerHTML = `<tr><td colspan="16" style="color:#ff7b72">Ошибка сети</td></tr>`;
     }
 }
 
