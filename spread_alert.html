@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spread Alert by Artofskill</title>
     <style>
+        /* Базовые стили (оставлены без изменений) */
         body { 
             font-family: 'Segoe UI', sans-serif; 
             background: #0d1117; 
@@ -39,7 +40,7 @@
             text-shadow: 0 0 10px rgba(255, 165, 87, 0.5);
         }
 
-        /* 4 блока в ряд на всю ширину */
+        /* Стили для десктопной версии */
         .wrapper { 
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -285,6 +286,94 @@
             padding-top: 15px;
             border-top: 1px solid #30363d;
         }
+
+        /* Мобильная версия */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.5em;
+                margin: 10px 0 15px 0;
+            }
+            
+            .time-block {
+                height: 80px;
+                margin: 0 10px 10px 10px;
+            }
+            
+            .ntp-time {
+                font-size: 2.5em;
+            }
+            
+            .wrapper {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                padding: 0 10px;
+            }
+            
+            .block {
+                height: auto;
+                min-height: 500px;
+                padding: 15px;
+            }
+            
+            .block h2 {
+                font-size: 1.1em;
+                margin-bottom: 10px;
+            }
+            
+            input, button, select {
+                padding: 10px 12px;
+                font-size: 16px; /* Для лучшего UX на мобильных */
+            }
+            
+            .content {
+                padding: 12px;
+                font-size: 0.95em;
+            }
+            
+            .ticker-big {
+                font-size: 1.3em;
+            }
+            
+            .spread-big {
+                font-size: 1.8em;
+            }
+            
+            .my-spread-num, .current-profit-num {
+                font-size: 1.7em;
+            }
+            
+            .position-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .position-section {
+                min-height: auto;
+            }
+            
+            .position-input, .exchange-select {
+                max-width: 100%;
+            }
+            
+            .position-size-input {
+                width: 100%;
+            }
+            
+            .funding-result {
+                font-size: 0.95em;
+                min-height: 120px;
+            }
+            
+            .funding-line {
+                flex-direction: column;
+                margin: 8px 0;
+            }
+            
+            .funding-label, .funding-value {
+                margin: 2px 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -368,466 +457,467 @@
         </div>
     </div>
 
-<script>
-// NTP-синхронизация времени
-let ntpOffset = 0;
+    <!-- JavaScript остается без изменений -->
+    <script>
+        // NTP-синхронизация времени
+        let ntpOffset = 0;
 
-async function syncNTPTime() {
-    try {
-        const start = Date.now();
-        const response = await fetch('https://worldtimeapi.org/api/ip');
-        const data = await response.json();
-        const end = Date.now();
-        
-        const serverTime = new Date(data.utc_datetime).getTime();
-        const rtt = end - start;
-        ntpOffset = serverTime - start - (rtt / 2);
-        
-        console.log('NTP синхронизация выполнена. Коррекция: ' + ntpOffset + 'ms');
-    } catch (error) {
-        console.error('Ошибка NTP синхронизации:', error);
-    }
-}
-
-function getNTPTime() {
-    return new Date(Date.now() + ntpOffset);
-}
-
-function updateNTPClock() {
-    const now = getNTPTime();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const seconds = now.getSeconds().toString().padStart(2, '0');
-    document.getElementById('ntp-clock').textContent = `${hours}:${minutes}:${seconds}`;
-}
-
-// Синхронизация при загрузке и каждые 5 минут
-syncNTPTime();
-setInterval(syncNTPTime, 300000);
-setInterval(updateNTPClock, 1000);
-
-// Обновленная функция для форматирования времени в 00:00:00
-function msToTime(ms) {
-    if (ms <= 0) return "00:00:00";
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-}
-
-// Остальной код
-let audioContext;
-function playBeep(freq = 600, duration = 300) {
-    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioContext.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    const gain = audioContext.createGain();
-    gain.gain.value = 0.3;
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    osc.start();
-    osc.stop(audioContext.currentTime + duration/1000);
-}
-function playLow() { playBeep(400, 500); setTimeout(() => playBeep(400, 500), 600); }
-function playHigh() { playBeep(900, 200); setTimeout(() => playBeep(900, 200), 300); setTimeout(() => playBeep(900, 200), 600); }
-
-let monitorActive = false;
-let lastPrices = { bybit: null, binance: null };
-let myLongPrice = 0;
-let myShortPrice = 0;
-let myLongExchange = 'bybit';
-let myShortExchange = 'binance';
-let mySpread = 0;
-let positionSize = 0;
-
-async function getPrices(symbol) {
-    try {
-        const [bybitResp, binanceResp] = await Promise.all([
-            fetch('https://api.bybit.com/v5/market/tickers?category=linear'),
-            fetch('https://fapi.binance.com/fapi/v1/premiumIndex')
-        ]);
-        const bybitData = await bybitResp.json();
-        const binanceData = await binanceResp.json();
-
-        const bybitTicker = bybitData.result.list.find(t => t.symbol === symbol);
-        const binanceTicker = binanceData.find(t => t.symbol === symbol);
-
-        if (!bybitTicker || !binanceTicker) return null;
-
-        return {
-            bybitPrice: parseFloat(bybitTicker.markPrice || bybitTicker.lastPrice),
-            binancePrice: parseFloat(binanceTicker.markPrice),
-            bybitRate: parseFloat(bybitTicker.fundingRate) * 100,
-            binanceRate: parseFloat(binanceTicker.lastFundingRate) * 100,
-            bybitNext: parseInt(bybitTicker.nextFundingTime),
-            binanceNext: parseInt(binanceTicker.nextFundingTime)
-        };
-    } catch (e) {
-        return null;
-    }
-}
-
-function getInterval(nextTime) {
-    const now = Date.now();
-    const diff = (nextTime - now) / 3600000;
-    if (Math.abs(diff - 1) < 0.5 || Math.abs(diff - 25) < 0.5) return "1-часовой";
-    if (Math.abs(diff - 4) < 0.5 || Math.abs(diff - 28) < 0.5) return "4-часовой";
-    return "8-часовой";
-}
-
-// Функция для получения текущей цены по выбранной бирже
-function getCurrentPrice(exchange) {
-    if (exchange === 'bybit') {
-        return lastPrices.bybit;
-    } else if (exchange === 'binance') {
-        return lastPrices.binance;
-    }
-    return null;
-}
-
-// Функция для получения данных фандинга по выбранной бирже
-function getFundingData(exchange, data) {
-    if (exchange === 'bybit') {
-        return {
-            rate: data.bybitRate,
-            nextTime: data.bybitNext,
-            time: msToTime(data.bybitNext - Date.now()),
-            interval: getInterval(data.bybitNext)
-        };
-    } else if (exchange === 'binance') {
-        return {
-            rate: data.binanceRate,
-            nextTime: data.binanceNext,
-            time: msToTime(data.binanceNext - Date.now()),
-            interval: getInterval(data.binanceNext)
-        };
-    }
-    return null;
-}
-
-// Функция для расчета PnL с учетом выбранных бирж
-function calculatePnL() {
-    if (!myLongPrice || !myShortPrice || !lastPrices.bybit || !lastPrices.binance) {
-        return null;
-    }
-
-    // Получаем текущие цены для выбранных бирж
-    const longCurrentPrice = getCurrentPrice(myLongExchange);
-    const shortCurrentPrice = getCurrentPrice(myShortExchange);
-    
-    if (!longCurrentPrice || !shortCurrentPrice) return null;
-
-    // PnL для лонга: (текущая цена - цена входа) / цена входа * 100%
-    const longPnLPercent = ((longCurrentPrice - myLongPrice) / myLongPrice * 100).toFixed(3);
-    
-    // PnL для шорта: (цена входа - текущая цена) / цена входа * 100%
-    const shortPnLPercent = ((myShortPrice - shortCurrentPrice) / myShortPrice * 100).toFixed(3);
-    
-    // Расчет PnL в USDT
-    let longPnLUsdt = 0;
-    let shortPnLUsdt = 0;
-    let totalPnLUsdt = 0;
-    
-    if (positionSize > 0) {
-        longPnLUsdt = (longCurrentPrice - myLongPrice) * positionSize;
-        shortPnLUsdt = (myShortPrice - shortCurrentPrice) * positionSize;
-        totalPnLUsdt = longPnLUsdt + shortPnLUsdt;
-    }
-    
-    return {
-        longPnLPercent: longPnLPercent,
-        shortPnLPercent: shortPnLPercent,
-        longCurrentPrice: longCurrentPrice,
-        shortCurrentPrice: shortCurrentPrice,
-        longPnLUsdt: longPnLUsdt,
-        shortPnLUsdt: shortPnLUsdt,
-        totalPnLUsdt: totalPnLUsdt
-    };
-}
-
-// Обновленная функция для отображения позиции с PnL
-function updatePositionDisplay() {
-    if (!myLongPrice || !myShortPrice) {
-        document.getElementById('my-result').innerHTML = 'Введи обе цены';
-        return;
-    }
-
-    const pnlData = calculatePnL();
-    
-    let pnlHtml = '';
-    if (pnlData) {
-        pnlHtml = `
-            <div class="pnl-section">
-                <div class="pnl-line">
-                    <span class="pnl-label">Long PnL (${myLongExchange.toUpperCase()}):</span>
-                    <span class="pnl-value" style="color:${pnlData.longPnLPercent >= 0 ? '#56d364' : '#ff7b72'}">
-                        ${pnlData.longPnLPercent >= 0 ? '+' : ''}${pnlData.longPnLPercent}%
-                    </span>
-                </div>
-                <div class="pnl-line">
-                    <span class="pnl-label">Short PnL (${myShortExchange.toUpperCase()}):</span>
-                    <span class="pnl-value" style="color:${pnlData.shortPnLPercent >= 0 ? '#56d364' : '#ff7b72'}">
-                        ${pnlData.shortPnLPercent >= 0 ? '+' : ''}${pnlData.shortPnLPercent}%
-                    </span>
-                </div>
-                <div class="pnl-line">
-                    <span class="pnl-label">Текущая цена Long:</span>
-                    <span class="pnl-value">${pnlData.longCurrentPrice.toFixed(6)}</span>
-                </div>
-                <div class="pnl-line">
-                    <span class="pnl-label">Текущая цена Short:</span>
-                    <span class="pnl-value">${pnlData.shortCurrentPrice.toFixed(6)}</span>
-                </div>
-            </div>
-        `;
-    }
-
-    document.getElementById('my-result').innerHTML = `
-        <div>Long (${myLongExchange.toUpperCase()}) ${myLongPrice}</div>
-        <div>Short (${myShortExchange.toUpperCase()}) ${myShortPrice}</div>
-        <div class="my-spread-num" style="color:${mySpread > 0 ? '#56d364' : '#ff7b72'}">
-            ${mySpread > 0 ? '+' : ''}${mySpread}%
-        </div>
-        ${pnlHtml}
-    `;
-}
-
-// Функция для расчета рыночного спреда между выбранными биржами
-function calculateMarketSpread() {
-    if (!lastPrices.bybit || !lastPrices.binance) return null;
-    
-    const longCurrentPrice = getCurrentPrice(myLongExchange);
-    const shortCurrentPrice = getCurrentPrice(myShortExchange);
-    
-    if (!longCurrentPrice || !shortCurrentPrice) return null;
-    
-    // Рыночный спред: (текущая цена шорта - текущая цена лонга) / текущая цена лонга * 100%
-    const marketSpread = ((shortCurrentPrice - longCurrentPrice) / longCurrentPrice * 100).toFixed(3);
-    
-    return marketSpread;
-}
-
-// Функция для обновления Funding Info с учетом выбранных бирж
-function updateFundingInfo(data) {
-    if (!data) return;
-    
-    // Получаем данные фандинга для выбранных бирж
-    const longFunding = getFundingData(myLongExchange, data);
-    const shortFunding = getFundingData(myShortExchange, data);
-    
-    if (!longFunding || !shortFunding) return;
-    
-    // Рассчитываем спред фандинга с учетом позиций
-    // Для лонга мы платим фандинг, для шорта получаем
-    // Поэтому общий эффект: funding_short - funding_long
-    const fundingSpread = (shortFunding.rate - longFunding.rate).toFixed(4);
-    
-    // Чистый фандинг за круг (минус комиссия 0.25%)
-    const netFunding = (fundingSpread - 0.25).toFixed(4);
-    
-    document.getElementById('funding-result').innerHTML = `
-        <div class="funding-line">
-            <span class="funding-label">Long funding (${myLongExchange.toUpperCase()}):</span>
-            <span class="funding-value funding-${longFunding.rate >= 0 ? 'positive' : 'negative'}">
-                ${longFunding.rate.toFixed(5)}%
-            </span>
-        </div>
-        <div class="funding-line">
-            <span class="funding-label">→ через</span>
-            <span class="funding-value">${longFunding.time} (${longFunding.interval})</span>
-        </div>
-        <div class="funding-line">
-            <span class="funding-label">Short funding (${myShortExchange.toUpperCase()}):</span>
-            <span class="funding-value funding-${shortFunding.rate >= 0 ? 'positive' : 'negative'}">
-                ${shortFunding.rate.toFixed(5)}%
-            </span>
-        </div>
-        <div class="funding-line">
-            <span class="funding-label">→ через</span>
-            <span class="funding-value">${shortFunding.time} (${shortFunding.interval})</span>
-        </div>
-        <div class="funding-summary">
-            Спред фандинга (short - long): <strong style="color:${fundingSpread > 0 ? '#56d364' : '#ff7b72'}">
-                ${fundingSpread > 0 ? '+' : ''}${fundingSpread}%
-            </strong><br>
-            Чистый за круг (минус 0.25%): <strong style="color:${netFunding > 0 ? '#56d364' : '#ff7b72'}">
-                ${netFunding > 0 ? '+' : ''}${netFunding}%
-            </strong>
-        </div>
-    `;
-}
-
-async function monitorLoop() {
-    if (!monitorActive) return;
-
-    const symbol = document.getElementById('ticker').value.trim().toUpperCase() + 'USDT';
-    const minAlert = parseFloat(document.getElementById('min-alert').value) || 0;
-    const maxAlert = parseFloat(document.getElementById('max-alert').value) || 999;
-
-    const data = await getPrices(symbol);
-    if (!data) {
-        document.getElementById('result').innerHTML = `<span style="color:#ff7b72">Пара не найдена</span>`;
-        setTimeout(monitorLoop, 3000);
-        return;
-    }
-
-    if (data.bybitPrice !== lastPrices.bybit || data.binancePrice !== lastPrices.binance) {
-        lastPrices = { bybit: data.bybitPrice, binance: data.binancePrice };
-
-        // Расчет спреда между Bybit и Binance (для блока LIVE спред)
-        const diff = ((data.bybitPrice - data.binancePrice) / data.binancePrice * 100);
-        const absDiff = Math.abs(diff).toFixed(3);
-        const sign = diff > 0 ? '+' : '';
-
-        let extra = '';
-        let className = '';
-
-        if (absDiff <= minAlert && minAlert > 0) {
-            playLow();
-            className = 'alert-min';
-            extra = '<br>СПРЕД ≤ МИНИМУМ!';
-        }
-        if (absDiff >= maxAlert) {
-            playHigh();
-            className = 'alert-max';
-            extra = '<br>СПРЕД ≥ МАКСИМУМ!';
+        async function syncNTPTime() {
+            try {
+                const start = Date.now();
+                const response = await fetch('https://worldtimeapi.org/api/ip');
+                const data = await response.json();
+                const end = Date.now();
+                
+                const serverTime = new Date(data.utc_datetime).getTime();
+                const rtt = end - start;
+                ntpOffset = serverTime - start - (rtt / 2);
+                
+                console.log('NTP синхронизация выполнена. Коррекция: ' + ntpOffset + 'ms');
+            } catch (error) {
+                console.error('Ошибка NTP синхронизации:', error);
+            }
         }
 
-        document.getElementById('result').className = 'content ' + className;
-        document.getElementById('result').innerHTML = `
-            <div class="ticker-big">${symbol.replace('USDT','')}</div>
-            Bybit: <strong>${data.bybitPrice.toFixed(6)}</strong><br>
-            Binance: <strong>${data.binancePrice.toFixed(6)}</strong><br><br>
-            <span class="spread-big" style="color:${diff >= 0 ? '#56d364' : '#ff7b72'}">
-                ${sign}${absDiff}%
-            </span>
-            ${extra}
-        `;
+        function getNTPTime() {
+            return new Date(Date.now() + ntpOffset);
+        }
 
-        // Обновляем Funding Info с учетом выбранных бирж
-        updateFundingInfo(data);
+        function updateNTPClock() {
+            const now = getNTPTime();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('ntp-clock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
 
-        // Обновляем PnL и профит
-        updatePositionDisplay();
-        updateProfit();
-    }
+        // Синхронизация при загрузке и каждые 5 минут
+        syncNTPTime();
+        setInterval(syncNTPTime, 300000);
+        setInterval(updateNTPClock, 1000);
 
-    setTimeout(monitorLoop, 800);
-}
+        // Обновленная функция для форматирования времени в 00:00:00
+        function msToTime(ms) {
+            if (ms <= 0) return "00:00:00";
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
 
-function calcMySpread() {
-    const longPrice = parseFloat(document.getElementById('long-price').value);
-    const shortPrice = parseFloat(document.getElementById('short-price').value);
-    const longExchange = document.getElementById('long-exchange').value;
-    const shortExchange = document.getElementById('short-exchange').value;
-    const size = parseFloat(document.getElementById('position-size').value);
+        // Остальной код
+        let audioContext;
+        function playBeep(freq = 600, duration = 300) {
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioContext.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            const gain = audioContext.createGain();
+            gain.gain.value = 0.3;
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.start();
+            osc.stop(audioContext.currentTime + duration/1000);
+        }
+        function playLow() { playBeep(400, 500); setTimeout(() => playBeep(400, 500), 600); }
+        function playHigh() { playBeep(900, 200); setTimeout(() => playBeep(900, 200), 300); setTimeout(() => playBeep(900, 200), 600); }
 
-    if (!longPrice || !shortPrice) {
-        document.getElementById('my-result').innerHTML = 'Введи обе цены';
-        mySpread = 0;
-        updateProfit();
-        return;
-    }
+        let monitorActive = false;
+        let lastPrices = { bybit: null, binance: null };
+        let myLongPrice = 0;
+        let myShortPrice = 0;
+        let myLongExchange = 'bybit';
+        let myShortExchange = 'binance';
+        let mySpread = 0;
+        let positionSize = 0;
 
-    myLongPrice = longPrice;
-    myShortPrice = shortPrice;
-    myLongExchange = longExchange;
-    myShortExchange = shortExchange;
-    positionSize = size || 0;
-    
-    // Спред рассчитывается как разница между ценами входа
-    mySpread = ((shortPrice - longPrice) / longPrice * 100).toFixed(3);
+        async function getPrices(symbol) {
+            try {
+                const [bybitResp, binanceResp] = await Promise.all([
+                    fetch('https://api.bybit.com/v5/market/tickers?category=linear'),
+                    fetch('https://fapi.binance.com/fapi/v1/premiumIndex')
+                ]);
+                const bybitData = await bybitResp.json();
+                const binanceData = await binanceResp.json();
 
-    // Обновляем отображение позиции с PnL
-    updatePositionDisplay();
-    updateProfit();
-}
+                const bybitTicker = bybitData.result.list.find(t => t.symbol === symbol);
+                const binanceTicker = binanceData.find(t => t.symbol === symbol);
 
-function updateProfit() {
-    if (mySpread === 0) {
-        document.getElementById('profit-result').innerHTML = 'Введи свою позицию';
-        return;
-    }
+                if (!bybitTicker || !binanceTicker) return null;
 
-    // Получаем рыночный спред между выбранными биржами
-    const marketSpread = calculateMarketSpread();
-    
-    if (!marketSpread) {
-        document.getElementById('profit-result').innerHTML = 'Нет данных по ценам';
-        return;
-    }
+                return {
+                    bybitPrice: parseFloat(bybitTicker.markPrice || bybitTicker.lastPrice),
+                    binancePrice: parseFloat(binanceTicker.markPrice),
+                    bybitRate: parseFloat(bybitTicker.fundingRate) * 100,
+                    binanceRate: parseFloat(binanceTicker.lastFundingRate) * 100,
+                    bybitNext: parseInt(bybitTicker.nextFundingTime),
+                    binanceNext: parseInt(binanceTicker.nextFundingTime)
+                };
+            } catch (e) {
+                return null;
+            }
+        }
 
-    // Профит = наш спред - текущий рыночный спред
-    const profit = (mySpread - marketSpread).toFixed(3);
-    const color = profit > 0 ? '#56d364' : '#ff7b72';
+        function getInterval(nextTime) {
+            const now = Date.now();
+            const diff = (nextTime - now) / 3600000;
+            if (Math.abs(diff - 1) < 0.5 || Math.abs(diff - 25) < 0.5) return "1-часовой";
+            if (Math.abs(diff - 4) < 0.5 || Math.abs(diff - 28) < 0.5) return "4-часовой";
+            return "8-часовой";
+        }
 
-    // Расчет PnL в USDT
-    const pnlData = calculatePnL();
-    let usdtHtml = '';
-    
-    if (pnlData && positionSize > 0) {
-        usdtHtml = `
-            <div class="usdt-pnl">
-                <div class="pnl-line">
-                    <span class="pnl-label">Long PnL (USDT):</span>
-                    <span class="pnl-value" style="color:${pnlData.longPnLUsdt >= 0 ? '#56d364' : '#ff7b72'}">
-                        ${pnlData.longPnLUsdt >= 0 ? '+' : ''}${pnlData.longPnLUsdt.toFixed(2)} USDT
+        // Функция для получения текущей цены по выбранной бирже
+        function getCurrentPrice(exchange) {
+            if (exchange === 'bybit') {
+                return lastPrices.bybit;
+            } else if (exchange === 'binance') {
+                return lastPrices.binance;
+            }
+            return null;
+        }
+
+        // Функция для получения данных фандинга по выбранной бирже
+        function getFundingData(exchange, data) {
+            if (exchange === 'bybit') {
+                return {
+                    rate: data.bybitRate,
+                    nextTime: data.bybitNext,
+                    time: msToTime(data.bybitNext - Date.now()),
+                    interval: getInterval(data.bybitNext)
+                };
+            } else if (exchange === 'binance') {
+                return {
+                    rate: data.binanceRate,
+                    nextTime: data.binanceNext,
+                    time: msToTime(data.binanceNext - Date.now()),
+                    interval: getInterval(data.binanceNext)
+                };
+            }
+            return null;
+        }
+
+        // Функция для расчета PnL с учетом выбранных бирж
+        function calculatePnL() {
+            if (!myLongPrice || !myShortPrice || !lastPrices.bybit || !lastPrices.binance) {
+                return null;
+            }
+
+            // Получаем текущие цены для выбранных бирж
+            const longCurrentPrice = getCurrentPrice(myLongExchange);
+            const shortCurrentPrice = getCurrentPrice(myShortExchange);
+            
+            if (!longCurrentPrice || !shortCurrentPrice) return null;
+
+            // PnL для лонга: (текущая цена - цена входа) / цена входа * 100%
+            const longPnLPercent = ((longCurrentPrice - myLongPrice) / myLongPrice * 100).toFixed(3);
+            
+            // PnL для шорта: (цена входа - текущая цена) / цена входа * 100%
+            const shortPnLPercent = ((myShortPrice - shortCurrentPrice) / myShortPrice * 100).toFixed(3);
+            
+            // Расчет PnL в USDT
+            let longPnLUsdt = 0;
+            let shortPnLUsdt = 0;
+            let totalPnLUsdt = 0;
+            
+            if (positionSize > 0) {
+                longPnLUsdt = (longCurrentPrice - myLongPrice) * positionSize;
+                shortPnLUsdt = (myShortPrice - shortCurrentPrice) * positionSize;
+                totalPnLUsdt = longPnLUsdt + shortPnLUsdt;
+            }
+            
+            return {
+                longPnLPercent: longPnLPercent,
+                shortPnLPercent: shortPnLPercent,
+                longCurrentPrice: longCurrentPrice,
+                shortCurrentPrice: shortCurrentPrice,
+                longPnLUsdt: longPnLUsdt,
+                shortPnLUsdt: shortPnLUsdt,
+                totalPnLUsdt: totalPnLUsdt
+            };
+        }
+
+        // Обновленная функция для отображения позиции с PnL
+        function updatePositionDisplay() {
+            if (!myLongPrice || !myShortPrice) {
+                document.getElementById('my-result').innerHTML = 'Введи обе цены';
+                return;
+            }
+
+            const pnlData = calculatePnL();
+            
+            let pnlHtml = '';
+            if (pnlData) {
+                pnlHtml = `
+                    <div class="pnl-section">
+                        <div class="pnl-line">
+                            <span class="pnl-label">Long PnL (${myLongExchange.toUpperCase()}):</span>
+                            <span class="pnl-value" style="color:${pnlData.longPnLPercent >= 0 ? '#56d364' : '#ff7b72'}">
+                                ${pnlData.longPnLPercent >= 0 ? '+' : ''}${pnlData.longPnLPercent}%
+                            </span>
+                        </div>
+                        <div class="pnl-line">
+                            <span class="pnl-label">Short PnL (${myShortExchange.toUpperCase()}):</span>
+                            <span class="pnl-value" style="color:${pnlData.shortPnLPercent >= 0 ? '#56d364' : '#ff7b72'}">
+                                ${pnlData.shortPnLPercent >= 0 ? '+' : ''}${pnlData.shortPnLPercent}%
+                            </span>
+                        </div>
+                        <div class="pnl-line">
+                            <span class="pnl-label">Текущая цена Long:</span>
+                            <span class="pnl-value">${pnlData.longCurrentPrice.toFixed(6)}</span>
+                        </div>
+                        <div class="pnl-line">
+                            <span class="pnl-label">Текущая цена Short:</span>
+                            <span class="pnl-value">${pnlData.shortCurrentPrice.toFixed(6)}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('my-result').innerHTML = `
+                <div>Long (${myLongExchange.toUpperCase()}) ${myLongPrice}</div>
+                <div>Short (${myShortExchange.toUpperCase()}) ${myShortPrice}</div>
+                <div class="my-spread-num" style="color:${mySpread > 0 ? '#56d364' : '#ff7b72'}">
+                    ${mySpread > 0 ? '+' : ''}${mySpread}%
+                </div>
+                ${pnlHtml}
+            `;
+        }
+
+        // Функция для расчета рыночного спреда между выбранными биржами
+        function calculateMarketSpread() {
+            if (!lastPrices.bybit || !lastPrices.binance) return null;
+            
+            const longCurrentPrice = getCurrentPrice(myLongExchange);
+            const shortCurrentPrice = getCurrentPrice(myShortExchange);
+            
+            if (!longCurrentPrice || !shortCurrentPrice) return null;
+            
+            // Рыночный спред: (текущая цена шорта - текущая цена лонга) / текущая цена лонга * 100%
+            const marketSpread = ((shortCurrentPrice - longCurrentPrice) / longCurrentPrice * 100).toFixed(3);
+            
+            return marketSpread;
+        }
+
+        // Функция для обновления Funding Info с учетом выбранных бирж
+        function updateFundingInfo(data) {
+            if (!data) return;
+            
+            // Получаем данные фандинга для выбранных бирж
+            const longFunding = getFundingData(myLongExchange, data);
+            const shortFunding = getFundingData(myShortExchange, data);
+            
+            if (!longFunding || !shortFunding) return;
+            
+            // Рассчитываем спред фандинга с учетом позиций
+            // Для лонга мы платим фандинг, для шорта получаем
+            // Поэтому общий эффект: funding_short - funding_long
+            const fundingSpread = (shortFunding.rate - longFunding.rate).toFixed(4);
+            
+            // Чистый фандинг за круг (минус комиссия 0.25%)
+            const netFunding = (fundingSpread - 0.25).toFixed(4);
+            
+            document.getElementById('funding-result').innerHTML = `
+                <div class="funding-line">
+                    <span class="funding-label">Long funding (${myLongExchange.toUpperCase()}):</span>
+                    <span class="funding-value funding-${longFunding.rate >= 0 ? 'positive' : 'negative'}">
+                        ${longFunding.rate.toFixed(5)}%
                     </span>
                 </div>
-                <div class="pnl-line">
-                    <span class="pnl-label">Short PnL (USDT):</span>
-                    <span class="pnl-value" style="color:${pnlData.shortPnLUsdt >= 0 ? '#56d364' : '#ff7b72'}">
-                        ${pnlData.shortPnLUsdt >= 0 ? '+' : ''}${pnlData.shortPnLUsdt.toFixed(2)} USDT
+                <div class="funding-line">
+                    <span class="funding-label">→ через</span>
+                    <span class="funding-value">${longFunding.time} (${longFunding.interval})</span>
+                </div>
+                <div class="funding-line">
+                    <span class="funding-label">Short funding (${myShortExchange.toUpperCase()}):</span>
+                    <span class="funding-value funding-${shortFunding.rate >= 0 ? 'positive' : 'negative'}">
+                        ${shortFunding.rate.toFixed(5)}%
                     </span>
                 </div>
-                <div class="pnl-line">
-                    <span class="pnl-label">Total PnL (USDT):</span>
-                    <span class="pnl-value" style="color:${pnlData.totalPnLUsdt >= 0 ? '#56d364' : '#ff7b72'}">
-                        ${pnlData.totalPnLUsdt >= 0 ? '+' : ''}${pnlData.totalPnLUsdt.toFixed(2)} USDT
-                    </span>
+                <div class="funding-line">
+                    <span class="funding-label">→ через</span>
+                    <span class="funding-value">${shortFunding.time} (${shortFunding.interval})</span>
                 </div>
-            </div>
-        `;
-    }
+                <div class="funding-summary">
+                    Спред фандинга (short - long): <strong style="color:${fundingSpread > 0 ? '#56d364' : '#ff7b72'}">
+                        ${fundingSpread > 0 ? '+' : ''}${fundingSpread}%
+                    </strong><br>
+                    Чистый за круг (минус 0.25%): <strong style="color:${netFunding > 0 ? '#56d364' : '#ff7b72'}">
+                        ${netFunding > 0 ? '+' : ''}${netFunding}%
+                    </strong>
+                </div>
+            `;
+        }
 
-    document.getElementById('profit-result').innerHTML = `
-        <div class="profit-spread">Твой спред: <strong style="color:#7ffe94">${mySpread > 0 ? '+' : ''}${mySpread}%</strong></div>
-        <div class="market-spread">Рыночный спред (${myLongExchange.toUpperCase()}→${myShortExchange.toUpperCase()}): <strong>${marketSpread > 0 ? '+' : ''}${marketSpread}%</strong></div>
-        <div class="current-profit-num" style="color:${color}">
-            ${profit > 0 ? '+' : ''}${profit}%
-        </div>
-        <div style="margin-top:8px;">
-            ${profit > 0 ? 'Можно закрывать!' : 'Ждём схлопывания'}
-        </div>
-        ${usdtHtml}
-    `;
-}
+        async function monitorLoop() {
+            if (!monitorActive) return;
 
-function startMonitoring() {
-    if (monitorActive) return;
-    const ticker = document.getElementById('ticker').value.trim().toUpperCase();
-    if (!ticker) return alert('Введите тикер!');
-    monitorActive = true;
-    document.getElementById('start-btn').style.display = 'none';
-    document.getElementById('stop-btn').style.display = 'inline-block';
-    document.getElementById('result').innerHTML = 'Загрузка...';
-    document.getElementById('funding-result').innerHTML = 'Загрузка...';
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    lastPrices = { bybit: null, binance: null };
-    monitorLoop();
-}
+            const symbol = document.getElementById('ticker').value.trim().toUpperCase() + 'USDT';
+            const minAlert = parseFloat(document.getElementById('min-alert').value) || 0;
+            const maxAlert = parseFloat(document.getElementById('max-alert').value) || 999;
 
-function stopMonitoring() {
-    monitorActive = false;
-    document.getElementById('start-btn').style.display = 'inline-block';
-    document.getElementById('stop-btn').style.display = 'none';
-    document.getElementById('result').innerHTML = 'Остановлено';
-    document.getElementById('result').className = 'content';
-    document.getElementById('funding-result').innerHTML = 'Остановлено';
-    document.getElementById('profit-result').innerHTML = 'Мониторинг остановлен';
-}
-</script>
+            const data = await getPrices(symbol);
+            if (!data) {
+                document.getElementById('result').innerHTML = `<span style="color:#ff7b72">Пара не найдена</span>`;
+                setTimeout(monitorLoop, 3000);
+                return;
+            }
+
+            if (data.bybitPrice !== lastPrices.bybit || data.binancePrice !== lastPrices.binance) {
+                lastPrices = { bybit: data.bybitPrice, binance: data.binancePrice };
+
+                // Расчет спреда между Bybit и Binance (для блока LIVE спред)
+                const diff = ((data.bybitPrice - data.binancePrice) / data.binancePrice * 100);
+                const absDiff = Math.abs(diff).toFixed(3);
+                const sign = diff > 0 ? '+' : '';
+
+                let extra = '';
+                let className = '';
+
+                if (absDiff <= minAlert && minAlert > 0) {
+                    playLow();
+                    className = 'alert-min';
+                    extra = '<br>СПРЕД ≤ МИНИМУМ!';
+                }
+                if (absDiff >= maxAlert) {
+                    playHigh();
+                    className = 'alert-max';
+                    extra = '<br>СПРЕД ≥ МАКСИМУМ!';
+                }
+
+                document.getElementById('result').className = 'content ' + className;
+                document.getElementById('result').innerHTML = `
+                    <div class="ticker-big">${symbol.replace('USDT','')}</div>
+                    Bybit: <strong>${data.bybitPrice.toFixed(6)}</strong><br>
+                    Binance: <strong>${data.binancePrice.toFixed(6)}</strong><br><br>
+                    <span class="spread-big" style="color:${diff >= 0 ? '#56d364' : '#ff7b72'}">
+                        ${sign}${absDiff}%
+                    </span>
+                    ${extra}
+                `;
+
+                // Обновляем Funding Info с учетом выбранных бирж
+                updateFundingInfo(data);
+
+                // Обновляем PnL и профит
+                updatePositionDisplay();
+                updateProfit();
+            }
+
+            setTimeout(monitorLoop, 800);
+        }
+
+        function calcMySpread() {
+            const longPrice = parseFloat(document.getElementById('long-price').value);
+            const shortPrice = parseFloat(document.getElementById('short-price').value);
+            const longExchange = document.getElementById('long-exchange').value;
+            const shortExchange = document.getElementById('short-exchange').value;
+            const size = parseFloat(document.getElementById('position-size').value);
+
+            if (!longPrice || !shortPrice) {
+                document.getElementById('my-result').innerHTML = 'Введи обе цены';
+                mySpread = 0;
+                updateProfit();
+                return;
+            }
+
+            myLongPrice = longPrice;
+            myShortPrice = shortPrice;
+            myLongExchange = longExchange;
+            myShortExchange = shortExchange;
+            positionSize = size || 0;
+            
+            // Спред рассчитывается как разница между ценами входа
+            mySpread = ((shortPrice - longPrice) / longPrice * 100).toFixed(3);
+
+            // Обновляем отображение позиции с PnL
+            updatePositionDisplay();
+            updateProfit();
+        }
+
+        function updateProfit() {
+            if (mySpread === 0) {
+                document.getElementById('profit-result').innerHTML = 'Введи свою позицию';
+                return;
+            }
+
+            // Получаем рыночный спред между выбранными биржами
+            const marketSpread = calculateMarketSpread();
+            
+            if (!marketSpread) {
+                document.getElementById('profit-result').innerHTML = 'Нет данных по ценам';
+                return;
+            }
+
+            // Профит = наш спред - текущий рыночный спред
+            const profit = (mySpread - marketSpread).toFixed(3);
+            const color = profit > 0 ? '#56d364' : '#ff7b72';
+
+            // Расчет PnL в USDT
+            const pnlData = calculatePnL();
+            let usdtHtml = '';
+            
+            if (pnlData && positionSize > 0) {
+                usdtHtml = `
+                    <div class="usdt-pnl">
+                        <div class="pnl-line">
+                            <span class="pnl-label">Long PnL (USDT):</span>
+                            <span class="pnl-value" style="color:${pnlData.longPnLUsdt >= 0 ? '#56d364' : '#ff7b72'}">
+                                ${pnlData.longPnLUsdt >= 0 ? '+' : ''}${pnlData.longPnLUsdt.toFixed(2)} USDT
+                            </span>
+                        </div>
+                        <div class="pnl-line">
+                            <span class="pnl-label">Short PnL (USDT):</span>
+                            <span class="pnl-value" style="color:${pnlData.shortPnLUsdt >= 0 ? '#56d364' : '#ff7b72'}">
+                                ${pnlData.shortPnLUsdt >= 0 ? '+' : ''}${pnlData.shortPnLUsdt.toFixed(2)} USDT
+                            </span>
+                        </div>
+                        <div class="pnl-line">
+                            <span class="pnl-label">Total PnL (USDT):</span>
+                            <span class="pnl-value" style="color:${pnlData.totalPnLUsdt >= 0 ? '#56d364' : '#ff7b72'}">
+                                ${pnlData.totalPnLUsdt >= 0 ? '+' : ''}${pnlData.totalPnLUsdt.toFixed(2)} USDT
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('profit-result').innerHTML = `
+                <div class="profit-spread">Твой спред: <strong style="color:#7ffe94">${mySpread > 0 ? '+' : ''}${mySpread}%</strong></div>
+                <div class="market-spread">Рыночный спред (${myLongExchange.toUpperCase()}→${myShortExchange.toUpperCase()}): <strong>${marketSpread > 0 ? '+' : ''}${marketSpread}%</strong></div>
+                <div class="current-profit-num" style="color:${color}">
+                    ${profit > 0 ? '+' : ''}${profit}%
+                </div>
+                <div style="margin-top:8px;">
+                    ${profit > 0 ? 'Можно закрывать!' : 'Ждём схлопывания'}
+                </div>
+                ${usdtHtml}
+            `;
+        }
+
+        function startMonitoring() {
+            if (monitorActive) return;
+            const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+            if (!ticker) return alert('Введите тикер!');
+            monitorActive = true;
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('stop-btn').style.display = 'inline-block';
+            document.getElementById('result').innerHTML = 'Загрузка...';
+            document.getElementById('funding-result').innerHTML = 'Загрузка...';
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            lastPrices = { bybit: null, binance: null };
+            monitorLoop();
+        }
+
+        function stopMonitoring() {
+            monitorActive = false;
+            document.getElementById('start-btn').style.display = 'inline-block';
+            document.getElementById('stop-btn').style.display = 'none';
+            document.getElementById('result').innerHTML = 'Остановлено';
+            document.getElementById('result').className = 'content';
+            document.getElementById('funding-result').innerHTML = 'Остановлено';
+            document.getElementById('profit-result').innerHTML = 'Мониторинг остановлен';
+        }
+    </script>
 </body>
 </html>
