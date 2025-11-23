@@ -3,98 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Funding Arbitrage TERMINAL by Artofskill │ Bybit ↔ Binance</title>
+    <title>Fun+Sprd Arbitrage TERMINAL by Artofskill │ Bybit ↔ Binance</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 15px; position: relative; }
-        h1 { text-align: center; color: #58a6ff; margin: 10px; }
-        .controls { text-align: center; margin: 15px 0; }
-        select, button, input { padding: 10px 16px; font-size: 16px; border-radius: 8px; border: none; background: #21262d; color: white; margin: 0 5px; }
-        input { width: 200px; text-transform: uppercase; }
-        .update { text-align: center; color: #ffa657; font-weight: bold; font-size: 1.1em; }
+    /* Все оригинальные стили остаются без изменений */
+    body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 15px; position: relative; }
+    h1 { text-align: center; color: #58a6ff; margin: 10px; }
+    .controls { text-align: center; margin: 15px 0; }
+    select, button, input { padding: 10px 16px; font-size: 16px; border-radius: 8px; border: none; background: #21262d; color: white; margin: 0 5px; }
+    input { width: 200px; text-transform: uppercase; }
+    .update { text-align: center; color: #ffa657; font-weight: bold; font-size: 1.1em; }
 
-        .sound-control { text-align: center; margin: 15px 0; color: #ffa657; font-size: 1.2em; }
-        .sound-control input { width: 90px; }
+    .sound-control { text-align: center; margin: 15px 0; color: #ffa657; font-size: 1.2em; }
+    .sound-control input { width: 90px; }
 
-        .spread-calc { text-align: center; margin: 20px auto; padding: 20px; background: #161b22; border-radius: 16px; border: 2px solid #30363d; max-width: 600px; }
-        .calc-result { margin-top: 20px; padding: 15px; background: #21262d; border-radius: 12px; font-size: 1.1em; line-height: 1.8; }
+    .spread-calc { text-align: center; margin: 20px auto; padding: 20px; background: #161b22; border-radius: 16px; border: 2px solid #30363d; max-width: 600px; }
+    .calc-result { margin-top: 20px; padding: 15px; background: #21262d; border-radius: 12px; font-size: 1.1em; line-height: 1.8; }
 
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #161b22; border-radius: 12px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.7); }
-        th { background: #1f6feb; color: white; padding: 12px 6px; text-align: center; font-size: 0.93em; }
-        td { padding: 10px 4px; text-align: center; font-size: 0.93em; }
-        tr:hover { background: #21262d; }
-        .ticker { color: #58a6ff; font-weight: bold; cursor: pointer; text-decoration: underline; }
-        .ticker:hover { color: #79c0ff; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #161b22; border-radius: 12px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.7); }
+    th { background: #1f6feb; color: white; padding: 12px 6px; text-align: center; font-size: 0.93em; }
+    td { padding: 10px 4px; text-align: center; font-size: 0.93em; }
+    tr:hover { background: #21262d; }
+    .ticker { color: #58a6ff; font-weight: bold; cursor: pointer; text-decoration: underline; }
+    .ticker:hover { color: #79c0ff; }
 
-        .by-btn { background: #21262d; color: white; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin: 0 2px; }
-        .by-btn:hover { background: #58a6ff; color: black; font-weight: bold; }
-        .bn-btn { background: #21262d; color: #ffa657; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin: 0 2px; }
-        .bn-btn:hover { background: #58a6ff; color: black; font-weight: bold; }
+    .by-btn { background: #21262d; color: white; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin: 0 2px; }
+    .by-btn:hover { background: #58a6ff; color: black; font-weight: bold; }
+    .bn-btn { background: #21262d; color: #ffa657; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin: 0 2px; }
+    .bn-btn:hover { background: #58a6ff; color: black; font-weight: bold; }
 
-        .calc-btn { background: #8b5cf6; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; }
-        .calc-btn:hover { background: #c084fc; color: black; font-weight: bold; }
+    .calc-btn { background: #8b5cf6; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; }
+    .calc-btn:hover { background: #c084fc; color: black; font-weight: bold; }
 
-        .direction { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; font-weight: bold; font-size: 0.85em; }
-        .long { background: #166534; color: white; padding: 3px 6px; border-radius: 4px; }
-        .short { background: #7f1d1d; color: white; padding: 3px 6px; border-radius: 4px; }
+    .direction { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; font-weight: bold; font-size: 0.85em; }
+    .long { background: #166534; color: white; padding: 3px 6px; border-radius: 4px; }
+    .short { background: #7f1d1d; color: white; padding: 3px 6px; border-radius: 4px; }
 
-        .real-profit { background: rgba(34, 197, 94, 0.3) !important; animation: realGlow 1.5s infinite alternate; }
-        @keyframes realGlow { from { box-shadow: 0 0 15px #34d399; } to { box-shadow: 0 0 25px #34d399; } }
+    .real-profit { background: rgba(34, 197, 94, 0.3) !important; animation: realGlow 1.5s infinite alternate; }
+    @keyframes realGlow { from { box-shadow: 0 0 15px #34d399; } to { box-shadow: 0 0 25px #34d399; } }
 
-        .lime { color: #7ffe94 !important; font-weight: bold; }
-        .green { color: #56d364 !important; font-weight: bold; }
-        .red { color: #ff7b72; font-weight: bold; }
-        .footer { text-align: center; color: #8b949e; margin-top: 20px; font-size: 0.9em; }
-        .copied { position: fixed; top: 20px; right: 20px; background: #238636; color: white; padding: 15px 30px; border-radius: 12px; z-index: 9999; opacity: 0; transition: opacity 0.4s; font-weight: bold; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+    .lime { color: #7ffe94 !important; font-weight: bold; }
+    .green { color: #56d364 !important; font-weight: bold; }
+    .red { color: #ff7b72; font-weight: bold; }
+    .footer { text-align: center; color: #8b949e; margin-top: 20px; font-size: 0.9em; }
+    .copied { position: fixed; top: 20px; right: 20px; background: #238636; color: white; padding: 15px 30px; border-radius: 12px; z-index: 9999; opacity: 0; transition: opacity 0.4s; font-weight: bold; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+    
+    /* Кнопка Spread PNL Calc - оранжевая */
+    .pnl-calc-btn { 
+        padding: 10px 16px; 
+        font-size: 16px; 
+        border-radius: 8px; 
+        border: none; 
+        background: #ffa657; 
+        color: black; 
+        cursor: pointer; 
+        text-decoration: none;
+        display: inline-block;
+        height: 40px;
+        box-sizing: border-box;
+    }
+    .pnl-calc-btn:hover { background: #ffb87a; font-weight: bold; }
+    
+    /* Кнопка открытия/закрытия калькулятора */
+    .toggle-calc-btn {
+        padding: 10px 16px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: none;
+        color: white;
+        cursor: pointer;
+        margin: 0 5px;
+        height: 40px;
+        box-sizing: border-box;
+    }
+    /* Зеленая кнопка когда калькулятор закрыт */
+    .toggle-calc-btn.calc-closed {
+        background: #238636;
+    }
+    .toggle-calc-btn.calc-closed:hover {
+        background: #2ea043;
+    }
+    /* Красная кнопка когда калькулятор открыт */
+    .toggle-calc-btn.calc-open {
+        background: #da3633;
+    }
+    .toggle-calc-btn.calc-open:hover {
+        background: #f85149;
+    }
+    
+    /* Стили для объемов */
+    .volume { font-size: 0.85em; }
+
+    /* Мобильная адаптация */
+    @media (max-width: 768px) {
+        body { padding: 10px; font-size: 14px; }
+        h1 { font-size: 1.2em; margin: 5px; }
         
-        /* Кнопка Spread PNL Calc - оранжевая */
-        .pnl-calc-btn { 
-            padding: 10px 16px; 
-            font-size: 16px; 
-            border-radius: 8px; 
-            border: none; 
-            background: #ffa657; 
-            color: black; 
-            cursor: pointer; 
-            text-decoration: none;
-            display: inline-block;
-            height: 40px;
+        .controls { display: flex; flex-direction: column; gap: 10px; }
+        .controls select, .controls button, .controls input, .controls a { 
+            width: 100%; 
+            margin: 0;
             box-sizing: border-box;
         }
-        .pnl-calc-btn:hover { background: #ffb87a; font-weight: bold; }
         
-        /* Кнопка открытия/закрытия калькулятора */
-        .toggle-calc-btn {
-            padding: 10px 16px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: none;
-            color: white;
-            cursor: pointer;
-            margin: 0 5px;
-            height: 40px;
-            box-sizing: border-box;
-        }
-        /* Зеленая кнопка когда калькулятор закрыт */
-        .toggle-calc-btn.calc-closed {
-            background: #238636;
-        }
-        .toggle-calc-btn.calc-closed:hover {
-            background: #2ea043;
-        }
-        /* Красная кнопка когда калькулятор открыт */
-        .toggle-calc-btn.calc-open {
-            background: #da3633;
-        }
-        .toggle-calc-btn.calc-open:hover {
-            background: #f85149;
+        .sound-control { font-size: 1em; }
+        .sound-control input { width: 80px; }
+        
+        .spread-calc { padding: 15px; margin: 10px auto; }
+        .calc-result { font-size: 0.9em; padding: 10px; }
+        
+        table { font-size: 0.8em; display: block; overflow-x: auto; white-space: nowrap; }
+        th, td { padding: 8px 3px; }
+        
+        /* Скрываем кнопки и менее важные колонки на мобильных */
+        /* Скрываем: By, Bn, Calc, Спред 8ч, 24h/vlm BN, 24h/vlm BY, →By, →Bn */
+        th:nth-child(2), td:nth-child(2),  /* By */
+        th:nth-child(3), td:nth-child(3),  /* Bn */
+        th:nth-child(4), td:nth-child(4),  /* Calc */
+        th:nth-child(5), td:nth-child(5),  /* Спред 8ч */
+        th:nth-child(10), td:nth-child(10), /* 24h/vlm BN */
+        th:nth-child(11), td:nth-child(11), /* 24h/vlm BY */
+        th:nth-child(16), td:nth-child(16), /* →By */
+        th:nth-child(17), td:nth-child(17)  /* →Bn */
+        { 
+            display: none; 
         }
         
-        /* Стили для объемов */
-        .volume { font-size: 0.85em; }
-    </style>
+        /* Оставляем: Пара, Чистый, Бонус вход, Итого, Направление, Bybit цена, Binance цена, Bybit rate, Binance rate */
+        
+        .direction { font-size: 0.75em; }
+        
+        .footer { font-size: 0.8em; }
+        .copied { padding: 10px 20px; font-size: 0.9em; }
+    }
+
+    @media (max-width: 480px) {
+        body { padding: 5px; font-size: 12px; }
+        h1 { font-size: 1em; }
+        
+        .controls select, .controls button, .controls input, .controls a { 
+            padding: 8px 12px; 
+            font-size: 14px;
+        }
+        
+        table { font-size: 0.7em; }
+        th, td { padding: 6px 2px; }
+        
+        /* На очень маленьких экранах оставляем все те же колонки */
+        
+        .footer { font-size: 0.7em; }
+    }
+</style>
 </head>
 <body>
-    <h1>Funding Arbitrage TERMINAL by Artofskill │ Bybit ↔ Binance</h1>
+    <h1>Fun+Sprd Arbitrage TERMINAL by Artofskill │ Bybit ↔ Binance</h1>
     <div class="update" id="last-update">Обновлено: —</div>
 
     <div class="controls">
@@ -372,8 +433,8 @@ async function update() {
 
             // Обновленные направления с короткими обозначениями
             const directionHTML = longOnBybit ?
-                `<div class="direction"><span class="long">L BY</span><span class="short">S BN</span></div>` :
-                `<div class="direction"><span class="long">L BN</span><span class="short">S BY</span></div>`;
+                `<div class="direction"><span class="long">L BYBIT</span><span class="short">S BINANCE</span></div>` :
+                `<div class="direction"><span class="long">L BINANCE</span><span class="short">S BYBIT</span></div>`;
 
             const timeLeft = ms => { if (ms <= 0) return "УЖЕ!"; const m = Math.floor(ms/60000); return `${Math.floor(m/60)}ч${String(m%60).padStart(2,'0')}м`; };
 
