@@ -643,7 +643,7 @@
 
     <!-- Блок для графика спреда -->
     <div class="chart-block">
-        <h2>📈 График спреда между биржами</h2>
+        <h2>📈 График спреда между биржами (Binance / Bybit)</h2>
         <div class="chart-controls">
             <button class="chart-btn update" onclick="updateChart()">🔄 Обновить график</button>
             <button class="chart-btn" onclick="openTradingView()">🌐 Открыть в TradingView</button>
@@ -860,34 +860,55 @@
             }
             
             const symbol = ticker.toUpperCase() + 'USDT';
-            const expression = `BINANCE:${symbol}.P - BYBIT:${symbol}.P`;
+            // ИСПРАВЛЕНО: теперь используем деление вместо вычитания
+            const expression = `BINANCE:${symbol}.P/BYBIT:${symbol}.P`;
             
             currentTicker = symbol;
             
+            console.log('Загрузка графика с выражением:', expression);
+            
             // Создаем виджет TradingView
-            new TradingView.widget({
-                "container_id": "tradingview-chart",
-                "width": "100%",
-                "height": "100%",
-                "symbol": expression,
-                "interval": "15",
-                "timezone": "exchange",
-                "theme": "dark",
-                "style": "1",
-                "locale": "ru",
-                "toolbar_bg": "#0d1117",
-                "enable_publishing": false,
-                "allow_symbol_change": false,
-                "hide_side_toolbar": false,
-                "details": true,
-                "studies": [
-                    "MASimple@tv-basicstudies",
-                    "Volume@tv-basicstudies"
-                ],
-                "show_popup_button": true,
-                "popup_width": "1000",
-                "popup_height": "650"
-            });
+            try {
+                new TradingView.widget({
+                    "container_id": "tradingview-chart",
+                    "width": "100%",
+                    "height": "100%",
+                    "symbol": expression,
+                    "interval": "15",
+                    "timezone": "exchange",
+                    "theme": "dark",
+                    "style": "1",
+                    "locale": "ru",
+                    "toolbar_bg": "#0d1117",
+                    "enable_publishing": false,
+                    "allow_symbol_change": false,
+                    "hide_side_toolbar": false,
+                    "details": true,
+                    "studies": [
+                        "MASimple@tv-basicstudies",
+                        "Volume@tv-basicstudies"
+                    ],
+                    "show_popup_button": true,
+                    "popup_width": "1000",
+                    "popup_height": "650",
+                    "overrides": {
+                        "mainSeriesProperties.priceAxisProperties.percentage": true, // Показывать в процентах
+                        "paneProperties.background": "#0d1117",
+                        "paneProperties.vertGridProperties.color": "#30363d",
+                        "paneProperties.horzGridProperties.color": "#30363d"
+                    }
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки графика TradingView:', error);
+                document.getElementById('tradingview-chart').innerHTML = 
+                    '<div style="display: flex; justify-content: center; align-items: center; height: 100%; color: #ff7b72; text-align: center; padding: 20px;">' +
+                    '<div>' +
+                    '<div style="font-size: 1.5em; margin-bottom: 10px;">⚠️</div>' +
+                    '<div style="font-weight: bold; margin-bottom: 5px;">Ошибка загрузки графика</div>' +
+                    '<div>Попробуйте обновить страницу<br>или проверьте тикер</div>' +
+                    '</div>' +
+                    '</div>';
+            }
         }
 
         // Функция для обновления графика
@@ -921,7 +942,8 @@
             }
             
             const symbol = ticker + 'USDT';
-            const expression = `BINANCE:${symbol}.P - BYBIT:${symbol}.P`;
+            // ИСПРАВЛЕНО: используем деление
+            const expression = `BINANCE:${symbol}.P/BYBIT:${symbol}.P`;
             const url = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(expression)}`;
             
             window.open(url, '_blank');
