@@ -108,10 +108,31 @@
             box-sizing: border-box;
         }
 
+        /* Новый блок для графика (более высокий) */
+        .chart-block { 
+            background: #161b22; 
+            padding: 18px;
+            border-radius: 16px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6); 
+            height: 700px; /* Меньше чем основные блоки */
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            margin-top: 15px;
+            grid-column: 1 / -1; /* Занимает всю ширину */
+        }
+
         .block h2 { 
             color: #ffa657; 
             margin: 0 0 12px 0; 
             font-size: 1.2em;
+            text-align: center;
+        }
+
+        .chart-block h2 { 
+            color: #58a6ff; 
+            margin: 0 0 15px 0; 
+            font-size: 1.3em;
             text-align: center;
         }
 
@@ -206,6 +227,52 @@
             justify-content: center; 
             font-size: 1.0em;
             line-height: 1.5;
+        }
+
+        /* Контейнер для графика */
+        .chart-container {
+            flex: 1;
+            background: #21262d;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #tradingview-chart {
+            width: 100%;
+            height: 100%;
+            min-height: 600px;
+        }
+
+        /* Кнопка для обновления графика */
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .chart-btn {
+            background: #58a6ff;
+            color: black;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .chart-btn:hover {
+            background: #79c0ff;
+        }
+
+        .chart-btn.update {
+            background: #56d364;
+        }
+
+        .chart-btn.update:hover {
+            background: #7ffe94;
         }
 
         /* Единые размеры для всех блоков */
@@ -416,9 +483,18 @@
                 padding: 15px;
             }
             
+            .chart-block {
+                height: 500px;
+                margin-top: 10px;
+            }
+            
             .block h2 {
                 font-size: 1.1em;
                 margin-bottom: 10px;
+            }
+            
+            .chart-block h2 {
+                font-size: 1.2em;
             }
             
             input, button, select {
@@ -472,6 +548,10 @@
             
             .funding-label, .funding-value {
                 margin: 2px 0;
+            }
+            
+            #tradingview-chart {
+                min-height: 400px;
             }
         }
     </style>
@@ -561,6 +641,18 @@
         </div>
     </div>
 
+    <!-- Блок для графика спреда -->
+    <div class="chart-block">
+        <h2>📈 График спреда между биржами</h2>
+        <div class="chart-controls">
+            <button class="chart-btn update" onclick="updateChart()">🔄 Обновить график</button>
+            <button class="chart-btn" onclick="openTradingView()">🌐 Открыть в TradingView</button>
+        </div>
+        <div class="chart-container">
+            <div id="tradingview-chart"></div>
+        </div>
+    </div>
+
     <!-- JavaScript -->
     <script>
         // NTP-синхронизация времени
@@ -568,6 +660,7 @@
         let fundingTimerActive = false;
         let fundingTimerInterval = null;
         let currentTimerFundingSpread = 0; // Сохраняем спред для таймера
+        let currentTicker = ''; // Текущий тикер для графика
 
         async function syncNTPTime() {
             try {
@@ -756,6 +849,82 @@
             const fundingUsdt = (fundingRatePercent * positionUsdt) / 100;
             
             return fundingUsdt;
+        }
+
+        // Функция для загрузки графика TradingView
+        function loadTradingViewChart(ticker) {
+            if (!ticker || ticker.trim() === '') {
+                document.getElementById('tradingview-chart').innerHTML = 
+                    '<div style="display: flex; justify-content: center; align-items: center; height: 100%; color: #8b949e;">Введите тикер и запустите мониторинг</div>';
+                return;
+            }
+            
+            const symbol = ticker.toUpperCase() + 'USDT';
+            const expression = `BINANCE:${symbol}.P - BYBIT:${symbol}.P`;
+            
+            currentTicker = symbol;
+            
+            // Создаем виджет TradingView
+            new TradingView.widget({
+                "container_id": "tradingview-chart",
+                "width": "100%",
+                "height": "100%",
+                "symbol": expression,
+                "interval": "15",
+                "timezone": "exchange",
+                "theme": "dark",
+                "style": "1",
+                "locale": "ru",
+                "toolbar_bg": "#0d1117",
+                "enable_publishing": false,
+                "allow_symbol_change": false,
+                "hide_side_toolbar": false,
+                "details": true,
+                "studies": [
+                    "MASimple@tv-basicstudies",
+                    "Volume@tv-basicstudies"
+                ],
+                "show_popup_button": true,
+                "popup_width": "1000",
+                "popup_height": "650"
+            });
+        }
+
+        // Функция для обновления графика
+        function updateChart() {
+            const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+            if (!ticker) {
+                alert('Введите тикер для отображения графика!');
+                return;
+            }
+            
+            loadTradingViewChart(ticker);
+            
+            // Показываем уведомление
+            const updateBtn = document.querySelector('.chart-btn.update');
+            const originalText = updateBtn.textContent;
+            updateBtn.textContent = '✓ График обновлен!';
+            updateBtn.style.background = '#56d364';
+            
+            setTimeout(() => {
+                updateBtn.textContent = originalText;
+                updateBtn.style.background = '#56d364';
+            }, 2000);
+        }
+
+        // Функция для открытия в TradingView
+        function openTradingView() {
+            const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+            if (!ticker) {
+                alert('Введите тикер для открытия графика!');
+                return;
+            }
+            
+            const symbol = ticker + 'USDT';
+            const expression = `BINANCE:${symbol}.P - BYBIT:${symbol}.P`;
+            const url = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(expression)}`;
+            
+            window.open(url, '_blank');
         }
 
         // Остальной код
@@ -1137,7 +1306,7 @@
                 return;
             }
 
-            // Получаем рыночный спред между выбранными биржами
+            // Получаем рыночный спред между выбранных бирж
             const marketSpread = calculateMarketSpread();
             
             if (!marketSpread) {
@@ -1202,6 +1371,10 @@
             document.getElementById('funding-result').innerHTML = 'Загрузка...';
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             lastPrices = { bybit: null, binance: null };
+            
+            // Загружаем график при запуске мониторинга
+            loadTradingViewChart(ticker);
+            
             monitorLoop();
         }
 
@@ -1226,7 +1399,20 @@
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', function() {
             updatePositionUsdt();
+            
+            // Показываем сообщение в блоке графика
+            document.getElementById('tradingview-chart').innerHTML = 
+                '<div style="display: flex; justify-content: center; align-items: center; height: 100%; color: #8b949e; text-align: center; padding: 20px;">' +
+                '<div>' +
+                '<div style="font-size: 1.5em; margin-bottom: 10px;">📈</div>' +
+                '<div style="font-weight: bold; margin-bottom: 5px;">График спреда между биржами</div>' +
+                '<div>Введите тикер и нажмите "СТАРТ"<br>или кнопку "Обновить график"</div>' +
+                '</div>' +
+                '</div>';
         });
     </script>
+    
+    <!-- TradingView Widget -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </body>
 </html>
