@@ -26,10 +26,20 @@
     .ticker { color: #58a6ff; font-weight: bold; cursor: pointer; text-decoration: underline; }
     .ticker:hover { color: #79c0ff; }
 
-    .by-btn { background: #21262d; color: white; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin: 0 2px; }
-    .by-btn:hover { background: #58a6ff; color: black; font-weight: bold; }
-    .bn-btn { background: #21262d; color: #ffa657; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin: 0 2px; }
-    .bn-btn:hover { background: #58a6ff; color: black; font-weight: bold; }
+    .spchart-btn { 
+        background: #000000; 
+        color: white; 
+        padding: 6px 10px; 
+        border-radius: 6px; 
+        font-size: 0.8em; 
+        cursor: pointer; 
+        margin: 0 2px; 
+    }
+    .spchart-btn:hover { 
+        background: #c084fc; 
+        color: black; 
+        font-weight: bold; 
+    }
 
     .calc-btn { background: #8b5cf6; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; }
     .calc-btn:hover { background: #c084fc; color: black; font-weight: bold; }
@@ -115,20 +125,15 @@
         th, td { padding: 8px 3px; }
         
         /* Скрываем кнопки и менее важные колонки на мобильных */
-        /* Скрываем: By, Bn, Calc, Спред 8ч, 24h/vlm BN, 24h/vlm BY, →By, →Bn */
-        th:nth-child(2), td:nth-child(2),  /* By */
-        th:nth-child(3), td:nth-child(3),  /* Bn */
-        th:nth-child(4), td:nth-child(4),  /* Calc */
-        th:nth-child(5), td:nth-child(5),  /* Спред 8ч */
-        th:nth-child(10), td:nth-child(10), /* 24h/vlm BN */
-        th:nth-child(11), td:nth-child(11), /* 24h/vlm BY */
-        th:nth-child(16), td:nth-child(16), /* →By */
-        th:nth-child(17), td:nth-child(17)  /* →Bn */
+        /* Скрываем: Спред 8ч, 24h/vlm BN, 24h/vlm BY */
+        th:nth-child(4), td:nth-child(4),  /* Спред 8ч */
+        th:nth-child(9), td:nth-child(9), /* 24h/vlm BN */
+        th:nth-child(10), td:nth-child(10) /* 24h/vlm BY */
         { 
             display: none; 
         }
         
-        /* Оставляем: Пара, Чистый, Бонус вход, Итого, Направление, Bybit цена, Binance цена, Bybit rate, Binance rate */
+        /* Оставляем: Пара, spchart, Calc, Чистый, Бонус вход, Итого, Направление, Bybit цена, Binance цена, Bybit rate, Binance rate */
         
         .direction { font-size: 0.75em; }
         
@@ -147,8 +152,6 @@
         
         table { font-size: 0.7em; }
         th, td { padding: 6px 2px; }
-        
-        /* На очень маленьких экранах оставляем все те же колонки */
         
         .footer { font-size: 0.7em; }
     }
@@ -188,8 +191,7 @@
         <thead>
             <tr>
                 <th>Пара</th>
-                <th>By</th>
-                <th>Bn</th>
+                <th>spchart</th>
                 <th>Calc</th>
                 <th>Спред 8ч</th>
                 <th>Чистый(FND-0.25%fee)</th>
@@ -202,8 +204,6 @@
                 <th>Binance<br>цена</th>
                 <th>Bybit<br>rate</th>
                 <th>Binance<br>rate</th>
-                <th>→By</th>
-                <th>→Bn</th>
             </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -211,7 +211,7 @@
 
     <div class="footer">
         Клик по паре — копирует тикер | Shift+клик — с USDT | Calc — полный анализ<br>
-        By — график Bybit | Bn — график Binance<br>
+        spchart — график спреда (Binance - Bybit)<br>
         <span id="clock"></span>
     </div>
 
@@ -259,12 +259,10 @@ function stopContinuousAlert() {
 
 let previousBest = -999;
 
-function openBybitChart(s) { 
-    window.open(`https://www.tradingview.com/chart/?symbol=BYBIT:${s}USDT`, '_blank'); 
-}
-
-function openBinanceChart(s) { 
-    window.open(`https://www.tradingview.com/chart/?symbol=BINANCE:${s}USDT.P`, '_blank'); 
+// Функция для открытия графика спреда
+function openSpreadChart(ticker) {
+    const expr = `BINANCE:${ticker}USDT.P - BYBIT:${ticker}USDT.P`;
+    window.open(`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(expr)}`, '_blank');
 }
 
 function copyTicker(ticker, withUSDT = false) {
@@ -346,6 +344,9 @@ async function calcSpread() {
         </div>
     `;
 }
+
+let pricesCache = {};
+let fundingCache = {};
 
 async function update() {
     try {
@@ -431,22 +432,17 @@ async function update() {
 
             const rowClass = totalProfit >= parseFloat(document.getElementById('sound-threshold').value) ? 'real-profit' : '';
 
-            // Обновленные направления с короткими обозначениями
             const directionHTML = longOnBybit ?
                 `<div class="direction"><span class="long">L BYBIT</span><span class="short">S BINANCE</span></div>` :
                 `<div class="direction"><span class="long">L BINANCE</span><span class="short">S BYBIT</span></div>`;
 
-            const timeLeft = ms => { if (ms <= 0) return "УЖЕ!"; const m = Math.floor(ms/60000); return `${Math.floor(m/60)}ч${String(m%60).padStart(2,'0')}м`; };
-
-            // Получение объемов
             const bnVolume = binanceVolumes[sym] || 0;
             const byVolume = bybitVolumes[sym] || 0;
 
             rows.push({totalProfit, html: `
                 <tr class="${rowClass}">
                     <td><span class="ticker" onclick="if(event.shiftKey) copyTicker('${ticker}', true); else copyTicker('${ticker}');">${ticker}</span></td>
-                    <td><span class="by-btn" onclick="openBybitChart('${ticker}')">By</span></td>
-                    <td><span class="bn-btn" onclick="openBinanceChart('${ticker}')">Bn</span></td>
+                    <td><span class="spchart-btn" onclick="openSpreadChart('${ticker}')">spchart</span></td>
                     <td><span class="calc-btn" onclick="document.getElementById('ticker-input').value='${ticker}'; document.querySelector('.spread-calc').style.display='block'; document.querySelector('.toggle-calc-btn').textContent='Закрыть калькулятор'; document.querySelector('.toggle-calc-btn').classList.remove('calc-closed'); document.querySelector('.toggle-calc-btn').classList.add('calc-open'); calcSpread();">Calc</span></td>
                     <td>${fundingSpread.toFixed(4)}%</td>
                     <td class="${netFunding >= 0.1 ? 'lime' : netFunding >= 0 ? 'green' : 'red'}">${netFunding > 0 ? '+' : ''}${netFunding.toFixed(4)}%</td>
@@ -461,8 +457,6 @@ async function update() {
                     <td>${bnPrice.toFixed(6)}</td>
                     <td>${br.toFixed(5)}%</td>
                     <td>${bn.toFixed(5)}%</td>
-                    <td>${timeLeft(bybit[sym].next - now)}</td>
-                    <td>${timeLeft(binance[sym].next - now)}</td>
                 </tr>
             `});
         }
@@ -485,7 +479,7 @@ async function update() {
         document.getElementById('last-update').innerHTML = `Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
     } catch (e) { 
         console.error(e);
-        document.getElementById('tbody').innerHTML = `<tr><td colspan="16" style="color:#ff7b72">Ошибка сети</td></tr>`;
+        document.getElementById('tbody').innerHTML = `<tr><td colspan="14" style="color:#ff7b72">Ошибка сети</td></tr>`;
     }
 }
 
