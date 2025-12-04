@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbitrage Spread – Депозит</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body{margin:0;font-family:'Segoe UI',sans-serif;background:#0f0f23;color:#fff;min-height:100vh}
+        .container{max-width:1400px;margin:20px auto;padding:30px;background:rgba(255,255,255,0.04);border-radius:25px;backdrop-filter:blur(15px);box-shadow:0 20px 60px rgba(0,0,0,0.6)}
+        h1{text-align:center;font-size:3.2em;margin:0 0 30px;background:linear-gradient(90deg,#00f5ff,#ff00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .header{margin-bottom:40px;text-align:center}
+        .refresh-btn{
+            background:linear-gradient(90deg,#00f5ff,#ff00ff);color:#000;border:none;padding:16px 50px;border-radius:50px;font-size:1.4em;cursor:pointer;font-weight:bold;
+            box-shadow:0 10px 30px rgba(0,0,0,0.5);transition:0.3s;position:relative;overflow:hidden
+        }
+        .refresh-btn:hover{transform:scale(1.05)}
+        .refresh-btn.loading .spinner{display:inline-block}
+        .spinner{width:20px;height:20px;border:3px solid #000;border-top:3px solid transparent;border-radius:50%;animation:spin 1s linear infinite;display:none;margin-right:10px;vertical-align:middle}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:25px;margin:50px 0}
+        .stat{background:linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.03));border-radius:20px;padding:30px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.4);transition:0.3s}
+        .stat:hover{transform:translateY(-10px)}
+        .stat h3{font-size:1.2em;opacity:0.9;margin:0 0 15px}
+        .stat .value{font-size:3em;font-weight:900;background:linear-gradient(90deg,#00f5ff,#ff00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .progress-container{margin:60px 0;text-align:center}
+        .progress-label{font-size:2em;margin-bottom:20px}
+        .progress-bar{height:60px;background:rgba(255,255,255,0.1);border-radius:30px;overflow:hidden;position:relative;box-shadow:inset 0 6px 20px rgba(0,0,0,0.5)}
+        .progress-fill{height:100%;width:0;background:linear-gradient(90deg,#00f5ff,#ff00ff);transition:width 2s ease}
+        .progress-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2.5em;font-weight:bold}
+        .circle-progress{width:320px;height:320px;margin:70px auto;position:relative}
+        .circle-progress svg{width:100%;height:100%;transform:rotate(-90deg)}
+        .circle-progress circle{fill:none;stroke:#333;stroke-width:28}
+        .circle-progress .bar{stroke:url(#grad);stroke-width:28;stroke-linecap:round;transition:stroke-dasharray 2s}
+        .circle-progress .text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:4em;font-weight:bold;background:linear-gradient(90deg,#00f5ff,#ff00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        table{width:100%;border-collapse:collapse;margin-top:60px;background:rgba(255,255,255,0.05);border-radius:15px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.4)}
+        th,td{padding:14px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1)}
+        th{background:linear-gradient(90deg,#00f5ff,#ff00ff);color:#000;font-weight:bold}
+        tr:hover{background:rgba(255,255,255,0.08)}
+        @media(max-width:768px){.stats{grid-template-columns:1fr 1fr}.circle-progress{width:250px;height:250px}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Arbitrage Spread – Депозит</h1>
+    <div class="header">
+        <button class="refresh-btn" onclick="loadData()" id="refreshBtn">
+            <span class="spinner"></span> Обновить
+        </button>
+    </div>
+
+    <div id="stats" class="stats"></div>
+
+    <div class="progress-container">
+        <div class="progress-label">До цели</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="totalFill"></div>
+            <div class="progress-text" id="totalText">0%</div>
+        </div>
+    </div>
+
+    <div class="circle-progress">
+        <svg><circle cx="160" cy="160" r="140"></circle><circle class="bar" cx="160" cy="160" r="140" stroke-dasharray="0 879"></circle></svg>
+        <div class="text">0%</div>
+    </div>
+
+    <table id="levelsTable">
+        <thead><tr><th>LVL</th><th>Депо</th><th>Цель</th><th>Текущий статус</th><th>Current LVL Profit</th><th>Achieved</th><th>Дата</th></tr></thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<svg style="position:absolute;width:0;height:0">
+    <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#00f5ff"/>
+            <stop offset="100%" stop-color="#ff00ff"/>
+        </linearGradient>
+    </defs>
+</svg>
+
+<script>
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTGolX0bo1z7rTJGbSN7TjPpWtUtS-lB35107OB71d5nULSaNbo-9imyWutPdbUuhxpxtRhthfHB1Q9/pub?gid=266237619&single=true&output=csv';
+    const proxy = 'https://api.allorigins.win/raw?url=';
+    const url = proxy + encodeURIComponent(csvUrl);
+
+    function loadData() {
+        const btn = document.getElementById('refreshBtn');
+        btn.classList.add('loading');
+        btn.disabled = true;
+
+        Papa.parse(url, {
+            download: true,
+            header: false,
+            skipEmptyLines: true,
+            complete: function(res) {
+                const rows = res.data;
+
+                // === Основные данные C3:F4 (индексы 2 и 3) ===
+                const dataRow = rows[3];
+                const parse = s => parseFloat((s||'').toString().replace(/[^0-9,]/g,'').replace(',','.')) || 0;
+                const currentDep = parse(dataRow[2]);
+                const neededProfit = parse(dataRow[3]);
+                const nextGoal = parse(dataRow[4]);
+                const totalGoal = parse(dataRow[5]);
+
+                const totalPercent = totalGoal > 0 ? (currentDep / totalGoal) * 100 : 0;
+                const format = n => '$' + n.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat"><h3>Тек. депозит</h3><div class="value">${format(currentDep)}</div></div>
+                    <div class="stat"><h3>Требуемая прибыль</h3><div class="value">${format(neededProfit)}</div></div>
+                    <div class="stat"><h3>Следующая цель</h3><div class="value">${format(nextGoal)}</div></div>
+                    <div class="stat"><h3>Общая цель</h3><div class="value">${format(totalGoal)}</div></div>
+                `;
+
+                document.getElementById('totalFill').style.width = Math.min(totalPercent, 110) + '%';
+                document.getElementById('totalText').textContent = totalPercent.toFixed(1) + '%';
+
+                const circ = 2 * Math.PI * 140;
+                const dash = (totalPercent / 100) * circ;
+                document.querySelector('.bar').style.strokeDasharray = `${dash} ${circ}`;
+                document.querySelector('.circle-progress .text').textContent = totalPercent.toFixed(1) + '%';
+
+                // === Таблица уровней A8:G141 (начиная с rows[7]) ===
+                const tableBody = document.querySelector('#levelsTable tbody');
+                tableBody.innerHTML = '';
+                for (let i = 7; i < rows.length; i++) {
+                    const r = rows[i];
+                    if (r.length < 7) continue;
+                    const achieved = r[5] === 'Да' ? 'Да' : '';
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td>${r[0] || ''}</td>
+                            <td>${r[1] || ''}</td>
+                            <td>${r[2] || ''}</td>
+                            <td><strong>${r[3] || ''}</strong></td>
+                            <td>${r[4] || ''}</td>
+                            <td style="color:#00ff9d;font-weight:bold">${achieved}</td>
+                            <td>${r[6] || ''}</td>
+                        </tr>
+                    `;
+                }
+
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+    }
+
+    loadData();
+</script>
+</body>
+</html>
