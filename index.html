@@ -24,7 +24,47 @@
             flex-direction: column;
             padding: 20px 15px;
             touch-action: manipulation;
+            position: relative;
+            overflow-x: hidden;
         }
+        
+        /* Анимированный фон */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(-45deg, 
+                #0d1117, 
+                #161b22, 
+                #0a2e4a, 
+                #161b22,
+                #0d1117,
+                #0f3b5a);
+            background-size: 400% 400%;
+            animation: gradientAnimation 20s ease infinite;
+            opacity: 0.8;
+        }
+        
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Затемняющий слой для лучшей читаемости */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 17, 23, 0.7);
+            z-index: -1;
+        }
+
         .header {
             text-align: center;
             margin-bottom: 50px;
@@ -74,8 +114,10 @@
         .card::before {
             content: '';
             position: absolute;
-            top: 0; left: -100%;
-            width: 100%; height: 100%;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
             background: linear-gradient(90deg, transparent, rgba(88,166,255,0.15), transparent);
             transition: 0.7s;
         }
@@ -121,6 +163,8 @@
             color: #8b949e;
             font-size: 0.95em;
             border-top: 1px solid var(--border);
+            position: relative;
+            z-index: 1;
         }
 
         /* Анимации */
@@ -136,6 +180,11 @@
             .card h2 { font-size: 1.7em; }
             .card p { font-size: 1.1em; }
             .btn { font-size: 1.3em; padding: 14px 40px; }
+            
+            /* Уменьшаем анимацию на мобильных */
+            .animated-bg {
+                animation: gradientAnimation 25s ease infinite;
+            }
         }
         @media (max-width: 480px) {
             h1 { font-size: 2em; }
@@ -146,6 +195,10 @@
     </style>
 </head>
 <body>
+
+    <!-- Анимированный фон -->
+    <div class="animated-bg"></div>
+    <div class="overlay"></div>
 
     <div class="header">
         <h1>Artofskill</h1>
@@ -192,6 +245,14 @@
 
         // Защита от случайного выделения текста при двойном тапе на мобилках
         document.addEventListener('touchstart', function(){}, { passive: true });
+        
+        // Дополнительный эффект при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            // Плавное появление контента после загрузки фона
+            setTimeout(function() {
+                document.querySelector('.header').style.animation = 'fadeIn 1s ease-out forwards';
+            }, 100);
+        });
     </script>
 
 </body>
