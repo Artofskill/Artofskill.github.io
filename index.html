@@ -3,496 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fun+Sprd Arbitrage TERMINAL by Artofskill │ Bybit ↔ Binance</title>
+    <title>Artofskill — Главная</title>
     <style>
-    /* Все оригинальные стили остаются без изменений */
-    body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 15px; position: relative; }
-    h1 { text-align: center; color: #58a6ff; margin: 10px; }
-    .controls { text-align: center; margin: 15px 0; }
-    select, button, input { padding: 10px 16px; font-size: 16px; border-radius: 8px; border: none; background: #21262d; color: white; margin: 0 5px; }
-    input { width: 200px; text-transform: uppercase; }
-    .update { text-align: center; color: #ffa657; font-weight: bold; font-size: 1.1em; }
-
-    .sound-control { text-align: center; margin: 15px 0; color: #ffa657; font-size: 1.2em; }
-    .sound-control input { width: 90px; }
-
-    .spread-calc { text-align: center; margin: 20px auto; padding: 20px; background: #161b22; border-radius: 16px; border: 2px solid #30363d; max-width: 600px; }
-    .calc-result { margin-top: 20px; padding: 15px; background: #21262d; border-radius: 12px; font-size: 1.1em; line-height: 1.8; }
-
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #161b22; border-radius: 12px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.7); }
-    th { background: #1f6feb; color: white; padding: 12px 6px; text-align: center; font-size: 0.93em; }
-    td { padding: 10px 4px; text-align: center; font-size: 0.93em; }
-    tr:hover { background: #21262d; }
-    .ticker { color: #58a6ff; font-weight: bold; cursor: pointer; text-decoration: underline; }
-    .ticker:hover { color: #79c0ff; }
-
-    .spchart-btn { 
-        background: #000000; 
-        color: white; 
-        padding: 6px 10px; 
-        border-radius: 6px; 
-        font-size: 0.8em; 
-        cursor: pointer; 
-        margin: 0 2px; 
-    }
-    .spchart-btn:hover { 
-        background: #c084fc; 
-        color: black; 
-        font-weight: bold; 
-    }
-
-    .calc-btn { background: #8b5cf6; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; }
-    .calc-btn:hover { background: #c084fc; color: black; font-weight: bold; }
-
-    .direction { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; font-weight: bold; font-size: 0.85em; }
-    .long { background: #166534; color: white; padding: 3px 6px; border-radius: 4px; }
-    .short { background: #7f1d1d; color: white; padding: 3px 6px; border-radius: 4px; }
-
-    .real-profit { background: rgba(34, 197, 94, 0.3) !important; animation: realGlow 1.5s infinite alternate; }
-    @keyframes realGlow { from { box-shadow: 0 0 15px #34d399; } to { box-shadow: 0 0 25px #34d399; } }
-
-    .lime { color: #7ffe94 !important; font-weight: bold; }
-    .green { color: #56d364 !important; font-weight: bold; }
-    .red { color: #ff7b72; font-weight: bold; }
-    .footer { text-align: center; color: #8b949e; margin-top: 20px; font-size: 0.9em; }
-    .copied { position: fixed; top: 20px; right: 20px; background: #238636; color: white; padding: 15px 30px; border-radius: 12px; z-index: 9999; opacity: 0; transition: opacity 0.4s; font-weight: bold; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-    
-    /* Кнопка Spread PNL Calc - оранжевая */
-    .pnl-calc-btn { 
-        padding: 10px 16px; 
-        font-size: 16px; 
-        border-radius: 8px; 
-        border: none; 
-        background: #ffa657; 
-        color: black; 
-        cursor: pointer; 
-        text-decoration: none;
-        display: inline-block;
-        height: 40px;
-        box-sizing: border-box;
-    }
-    .pnl-calc-btn:hover { background: #ffb87a; font-weight: bold; }
-    
-    /* Кнопка открытия/закрытия калькулятора */
-    .toggle-calc-btn {
-        padding: 10px 16px;
-        font-size: 16px;
-        border-radius: 8px;
-        border: none;
-        color: white;
-        cursor: pointer;
-        margin: 0 5px;
-        height: 40px;
-        box-sizing: border-box;
-    }
-    /* Зеленая кнопка когда калькулятор закрыт */
-    .toggle-calc-btn.calc-closed {
-        background: #238636;
-    }
-    .toggle-calc-btn.calc-closed:hover {
-        background: #2ea043;
-    }
-    /* Красная кнопка когда калькулятор открыт */
-    .toggle-calc-btn.calc-open {
-        background: #da3633;
-    }
-    .toggle-calc-btn.calc-open:hover {
-        background: #f85149;
-    }
-    
-    /* Стили для объемов */
-    .volume { font-size: 0.85em; }
-
-    /* Мобильная адаптация */
-    @media (max-width: 768px) {
-        body { padding: 10px; font-size: 14px; }
-        h1 { font-size: 1.2em; margin: 5px; }
-        
-        .controls { display: flex; flex-direction: column; gap: 10px; }
-        .controls select, .controls button, .controls input, .controls a { 
-            width: 100%; 
-            margin: 0;
-            box-sizing: border-box;
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --text: #c9d1d9;
+            --accent: #58a6ff;
+            --accent2: #ffa657;
+            --green: #56d364;
+            --border: #30363d;
         }
-        
-        .sound-control { font-size: 1em; }
-        .sound-control input { width: 80px; }
-        
-        .spread-calc { padding: 15px; margin: 10px auto; }
-        .calc-result { font-size: 0.9em; padding: 10px; }
-        
-        table { font-size: 0.8em; display: block; overflow-x: auto; white-space: nowrap; }
-        th, td { padding: 8px 3px; }
-        
-        /* Скрываем кнопки и менее важные колонки на мобильных */
-        /* Скрываем: Спред 8ч, 24h/vlm BN, 24h/vlm BY */
-        th:nth-child(4), td:nth-child(4),  /* Спред 8ч */
-        th:nth-child(9), td:nth-child(9), /* 24h/vlm BN */
-        th:nth-child(10), td:nth-child(10) /* 24h/vlm BY */
-        { 
-            display: none; 
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 15px;
+            touch-action: manipulation;
         }
-        
-        /* Оставляем: Пара, spchart, Calc, Чистый, Бонус вход, Итого, Направление, Bybit цена, Binance цена, Bybit rate, Binance rate */
-        
-        .direction { font-size: 0.75em; }
-        
-        .footer { font-size: 0.8em; }
-        .copied { padding: 10px 20px; font-size: 0.9em; }
-    }
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeIn 1s ease-out;
+        }
+        h1 {
+            font-size: 3em;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00f5ff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-size: 1.3em;
+            color: var(--accent2);
+            font-weight: 600;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 28px;
+            max-width: 1400px;
+            margin: 0 auto 60px;
+            flex: 1;
+        }
+        .card {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 35px 25px;
+            text-align: center;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.6);
+            border: 2px solid var(--border);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.3s; }
+        .card:nth-child(3) { animation-delay: 0.5s; }
 
-    @media (max-width: 480px) {
-        body { padding: 5px; font-size: 12px; }
-        h1 { font-size: 1em; }
-        
-        .controls select, .controls button, .controls input, .controls a { 
-            padding: 8px 12px; 
-            font-size: 14px;
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(88,166,255,0.15), transparent);
+            transition: 0.7s;
         }
-        
-        table { font-size: 0.7em; }
-        th, td { padding: 6px 2px; }
-        
-        .footer { font-size: 0.7em; }
-    }
-</style>
+        .card:hover::before { left: 100%; }
+        .card:hover {
+            transform: translateY(-15px) scale(1.03);
+            border-color: var(--accent);
+            box-shadow: 0 25px 50px rgba(88,166,255,0.3);
+        }
+        .card h2 {
+            font-size: 2em;
+            margin-bottom: 16px;
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .card p {
+            font-size: 1.15em;
+            line-height: 1.7;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(90deg, var(--accent), #79c0ff);
+            color: #000;
+            font-weight: bold;
+            font-size: 1.4em;
+            padding: 16px 50px;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #8b949e;
+            font-size: 0.95em;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Анимации */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* Мобильные улучшения */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.4em; }
+            .subtitle { font-size: 1.2em; }
+            .cards { gap: 20px; grid-template-columns: 1fr; }
+            .card { padding: 30px 20px; }
+            .card h2 { font-size: 1.7em; }
+            .card p { font-size: 1.1em; }
+            .btn { font-size: 1.3em; padding: 14px 40px; }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 2em; }
+            .header { margin-bottom: 40px; }
+            .card h2 { font-size: 1.5em; }
+            .btn { font-size: 1.2em; padding: 14px 35px; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Fun+Sprd Arbitrage TERMINAL by Artofskill │ Bybit ↔ Binance</h1>
-    <div class="update" id="last-update">Обновлено: —</div>
 
-    <div class="controls">
-        <select id="limit-select">
-            <option value="5">ТОП-5</option>
-            <option value="10" selected>ТОП-10</option>
-            <option value="15">ТОП-15</option>
-            <option value="25">ТОП-25</option>
-            <option value="50">ТОП-50</option>
-            <option value="9999">ВСЕ</option>
-        </select>
-        <button onclick="updateNow()">Обновить</button>
-        <button class="toggle-calc-btn calc-closed" onclick="toggleCalculator()">Открыть калькулятор</button>
-        <a href="https://artofskill.github.io/spread_alert.html" target="_blank" class="pnl-calc-btn">Spread PNL Calc</a>
+    <div class="header">
+        <h1>Artofskill</h1>
+        <div class="subtitle">Funding + Spread Arbitrage Terminal</div>
     </div>
 
-    <!-- Фильтр звука -->
-    <div class="sound-control">
-        Звук при Итого ≥ <input type="number" id="sound-threshold" step="0.1" value="2.5" style="width:90px;"> %
-    </div>
+    <div class="cards">
 
-    <div class="spread-calc" style="display:none;">
-        <div style="margin-bottom:10px; color:#ffa657;">Введи тикер (например BTC, PEPE, SOON)</div>
-        <input type="text" id="ticker-input" placeholder="SOON" autofocus>
-        <button onclick="calcSpread()">Анализ</button>
-        <div class="calc-result" id="calc-result">Результат появится здесь</div>
-    </div>
+        <div class="card" onclick="goTo('dashboard.html')">
+            <h2>Dashboard</h2>
+            <p>ТОП-пары по профиту за 8 часов<br>с учётом funding, спреда и комиссий</p>
+            <div class="btn">Открыть Dashboard</div>
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Пара</th>
-                <th>spchart</th>
-                <th>Calc</th>
-                <th>Спред 8ч</th>
-                <th>Чистый(FND-0.25%fee)</th>
-                <th>Бонус<br>вход</th>
-                <th>Итого ≈</th>
-                <th>Направление</th>
-                <th>24h/vlm BN</th>
-                <th>24h/vlm BY</th>
-                <th>Bybit<br>цена</th>
-                <th>Binance<br>цена</th>
-                <th>Bybit<br>rate</th>
-                <th>Binance<br>rate</th>
-            </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-    </table>
+        <div class="card" onclick="goTo('spread_alert.html')">
+            <h2>Spread Calculator</h2>
+            <p>Мониторинг спреда Bybit ↔ Binance<br>с PnL, funding и графиком в реальном времени</p>
+            <div class="btn">Открыть Calculator</div>
+        </div>
+
+        <div class="card" onclick="goTo('deposit.html')">
+            <h2>Депозит</h2>
+            <p>Трекер депозита и сложного процента<br>с прогресс-баром до следующего уровня</p>
+            <div class="btn">Открыть Депозит</div>
+        </div>
+
+    </div>
 
     <div class="footer">
-        Клик по паре — копирует тикер | Shift+клик — с USDT | Calc — полный анализ<br>
-        spchart — график спреда (Binance - Bybit)<br>
-        <span id="clock"></span>
+        © 2025 Artofskill — Все инструменты в одном месте<br>
+        <span style="color:#ffa657;">С любовью к арбитражу и профиту</span>
     </div>
 
-    <div class="copied" id="copied">Скопировано!</div>
-
-<script>
-// ЗВУК — работает 100%
-let audioContext = null;
-function playAlert() {
-    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioContext.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = 900;
-    const gain = audioContext.createGain();
-    gain.gain.value = 0.4;
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    osc.start();
-    osc.stop(audioContext.currentTime + 0.2);
-
-    setTimeout(() => {
-        const osc2 = audioContext.createOscillator();
-        osc2.type = 'sine';
-        osc2.frequency.value = 1200;
-        osc2.connect(gain);
-        osc2.start();
-        osc2.stop(audioContext.currentTime + 0.2);
-    }, 250);
-}
-
-let alertInterval = null;
-let alertActive = false;
-
-function startContinuousAlert() {
-    if (alertActive) return;
-    alertActive = true;
-    alertInterval = setInterval(playAlert, 2000);
-}
-
-function stopContinuousAlert() {
-    if (!alertActive) return;
-    alertActive = false;
-    clearInterval(alertInterval);
-}
-
-let previousBest = -999;
-
-// Функция для открытия графика спреда
-function openSpreadChart(ticker) {
-    const expr = `BINANCE:${ticker}USDT.P - BYBIT:${ticker}USDT.P`;
-    window.open(`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(expr)}`, '_blank');
-}
-
-function copyTicker(ticker, withUSDT = false) {
-    const text = withUSDT ? ticker + 'USDT' : ticker;
-    navigator.clipboard.writeText(text);
-    const el = document.getElementById('copied');
-    el.textContent = `Скопировано: ${text}`;
-    el.style.opacity = 1;
-    setTimeout(() => el.style.opacity = 0, 1500);
-}
-
-// Функция переключения калькулятора
-function toggleCalculator() {
-    const calc = document.querySelector('.spread-calc');
-    const btn = document.querySelector('.toggle-calc-btn');
-    
-    if (calc.style.display === 'none') {
-        calc.style.display = 'block';
-        btn.textContent = 'Закрыть калькулятор';
-        btn.classList.remove('calc-closed');
-        btn.classList.add('calc-open');
-    } else {
-        calc.style.display = 'none';
-        btn.textContent = 'Открыть калькулятор';
-        btn.classList.remove('calc-open');
-        btn.classList.add('calc-closed');
-    }
-}
-
-// Форматирование объема
-function formatVolume(volume) {
-    if (volume >= 1000000) {
-        return (volume / 1000000).toFixed(2) + 'M';
-    } else if (volume >= 1000) {
-        return (volume / 1000).toFixed(2) + 'K';
-    }
-    return volume.toFixed(2);
-}
-
-async function calcSpread() {
-    const input = document.getElementById('ticker-input').value.trim().toUpperCase();
-    if (!input) return;
-    const symbol = input + 'USDT';
-    const cache = pricesCache[symbol] || {};
-    const fund = fundingCache[symbol] || {};
-    if (!cache.bybit || !cache.binance) {
-        document.getElementById('calc-result').innerHTML = `<span style="color:#ff7b72">Монета ${input} не найдена</span>`;
-        return;
-    }
-
-    const byPrice = cache.bybit;
-    const bnPrice = cache.binance;
-    const byRate = fund.bybit || 0;
-    const bnRate = fund.binance || 0;
-
-    const longOnBybit = byRate < bnRate;
-
-    const fundingSpread = Math.abs(byRate - bnRate);
-    const netFunding = fundingSpread - 0.25;
-    const entryBonus = longOnBybit ? (bnPrice - byPrice) / byPrice * 100 : (byPrice - bnPrice) / bnPrice * 100;
-    const totalProfit = netFunding + entryBonus;
-
-    const direction = longOnBybit ?
-        `<span style="color:#56d364">ЛОНГ Bybit</span> + <span style="color:#ff7b72">ШОРТ Binance</span>` :
-        `<span style="color:#56d364">ЛОНГ Binance</span> + <span style="color:#ff7b72">ШОРТ Bybit</span>`;
-
-    const totalColor = totalProfit >= 0.5 ? '#56d364' : totalProfit >= 0 ? '#ffa657' : '#ff7b72';
-
-    document.getElementById('calc-result').innerHTML = `
-        <div class="calc-title">${input}USDT — полный анализ</div>
-        <div>Bybit цена: <strong>${byPrice.toFixed(6)}</strong> | Binance цена: <strong>${bnPrice.toFixed(6)}</strong></div>
-        <div>Спред цены: <strong style="color:${entryBonus >= 0 ? '#56d364' : '#ff7b72'}">${entryBonus > 0 ? '+' : ''}${entryBonus.toFixed(3)}%</strong></div>
-        <div>Bybit funding: <strong>${byRate.toFixed(5)}%</strong> | Binance funding: <strong>${bnRate.toFixed(5)}%</strong></div>
-        <div>Спред фандинга: <strong>${fundingSpread.toFixed(4)}%</strong> → Чистый за 8ч: <strong>${netFunding.toFixed(4)}%</strong></div>
-        <div style="margin-top:15px;">Направление: ${direction}</div>
-        <div style="margin-top:15px; font-size:1.6em;" class="big-number" style="color:${totalColor}">
-            Итого за 8ч ≈ <strong>${totalProfit > 0 ? '+' : ''}${totalProfit.toFixed(4)}%</strong>
-            ${totalProfit >= 0.5 ? 'ВХОДИ СЕЙЧАС!' : totalProfit >= 0 ? '— Норм' : '— Пропусти'}
-        </div>
-    `;
-}
-
-let pricesCache = {};
-let fundingCache = {};
-
-async function update() {
-    try {
-        const binanceInfo = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo').then(r => r.json());
-        const activeSymbols = new Set(binanceInfo.symbols.filter(s => s.status === 'TRADING' && s.contractType === 'PERPETUAL').map(s => s.symbol));
-
-        const [bybitResp, binanceResp, bybitVolumeResp, binanceVolumeResp] = await Promise.all([
-            fetch('https://api.bybit.com/v5/market/tickers?category=linear'),
-            fetch('https://fapi.binance.com/fapi/v1/premiumIndex'),
-            fetch('https://api.bybit.com/v5/market/tickers?category=linear'),
-            fetch('https://fapi.binance.com/fapi/v1/ticker/24hr')
-        ]);
-        
-        const bybitData = await bybitResp.json();
-        const binanceData = await binanceResp.json();
-        const bybitVolumeData = await bybitVolumeResp.json();
-        const binanceVolumeData = await binanceVolumeResp.json();
-
-        const bybit = {}; 
-        bybitData.result.list.forEach(t => { 
-            if (t.symbol.endsWith('USDT')) bybit[t.symbol] = { 
-                rate: parseFloat(t.fundingRate)*100, 
-                next: parseInt(t.nextFundingTime), 
-                price: parseFloat(t.markPrice || t.lastPrice) 
-            }; 
-        });
-
-        const binance = {}; 
-        binanceData.forEach(t => { 
-            if (t.symbol.endsWith('USDT')) binance[t.symbol] = { 
-                rate: parseFloat(t.lastFundingRate)*100, 
-                next: parseInt(t.nextFundingTime), 
-                price: parseFloat(t.markPrice) 
-            }; 
-        });
-
-        // Обработка объемов Bybit
-        const bybitVolumes = {};
-        bybitVolumeData.result.list.forEach(t => {
-            if (t.symbol.endsWith('USDT')) {
-                bybitVolumes[t.symbol] = parseFloat(t.volume24h) * parseFloat(t.markPrice || t.lastPrice);
+    <script>
+        // 100% надёжный переход — работает даже на iOS Safari и Android
+        function goTo(page) {
+            // Пробуем несколько способов (на всякий случай)
+            try {
+                window.location.href = page;
+            } catch(e) {
+                window.location = page;
             }
-        });
-
-        // Обработка объемов Binance
-        const binanceVolumes = {};
-        binanceVolumeData.forEach(t => {
-            if (t.symbol.endsWith('USDT')) {
-                binanceVolumes[t.symbol] = parseFloat(t.quoteVolume);
-            }
-        });
-
-        pricesCache = {};
-        fundingCache = {};
-
-        const now = Date.now();
-        const rows = [];
-        let bestTotal = -999;
-
-        for (const sym of Object.keys(bybit)) {
-            if (!binance[sym] || !activeSymbols.has(sym)) continue;
-
-            const br = bybit[sym].rate;
-            const bn = binance[sym].rate;
-            const byPrice = bybit[sym].price;
-            const bnPrice = binance[sym].price;
-
-            pricesCache[sym] = { bybit: byPrice, binance: bnPrice };
-            fundingCache[sym] = { bybit: br, binance: bn };
-
-            const longOnBybit = br < bn;
-
-            const fundingSpread = Math.abs(br - bn);
-            const netFunding = fundingSpread - 0.25;
-            const entryBonus = longOnBybit ? (bnPrice - byPrice) / byPrice * 100 : (byPrice - bnPrice) / bnPrice * 100;
-
-            if (Math.abs(entryBonus) > 5) continue;
-
-            const totalProfit = netFunding + entryBonus;
-            if (totalProfit > bestTotal) bestTotal = totalProfit;
-
-            const ticker = sym.replace('USDT', '');
-
-            const rowClass = totalProfit >= parseFloat(document.getElementById('sound-threshold').value) ? 'real-profit' : '';
-
-            const directionHTML = longOnBybit ?
-                `<div class="direction"><span class="long">L BYBIT</span><span class="short">S BINANCE</span></div>` :
-                `<div class="direction"><span class="long">L BINANCE</span><span class="short">S BYBIT</span></div>`;
-
-            const bnVolume = binanceVolumes[sym] || 0;
-            const byVolume = bybitVolumes[sym] || 0;
-
-            rows.push({totalProfit, html: `
-                <tr class="${rowClass}">
-                    <td><span class="ticker" onclick="if(event.shiftKey) copyTicker('${ticker}', true); else copyTicker('${ticker}');">${ticker}</span></td>
-                    <td><span class="spchart-btn" onclick="openSpreadChart('${ticker}')">spchart</span></td>
-                    <td><span class="calc-btn" onclick="document.getElementById('ticker-input').value='${ticker}'; document.querySelector('.spread-calc').style.display='block'; document.querySelector('.toggle-calc-btn').textContent='Закрыть калькулятор'; document.querySelector('.toggle-calc-btn').classList.remove('calc-closed'); document.querySelector('.toggle-calc-btn').classList.add('calc-open'); calcSpread();">Calc</span></td>
-                    <td>${fundingSpread.toFixed(4)}%</td>
-                    <td class="${netFunding >= 0.1 ? 'lime' : netFunding >= 0 ? 'green' : 'red'}">${netFunding > 0 ? '+' : ''}${netFunding.toFixed(4)}%</td>
-                    <td class="${entryBonus >= 0.2 ? 'lime' : entryBonus >= 0 ? 'green' : 'red'}">${entryBonus > 0 ? '+' : ''}${entryBonus.toFixed(3)}%</td>
-                    <td style="font-weight:bold; font-size:1.1em;" class="${totalProfit >= 0.5 ? 'lime' : totalProfit >= 0 ? 'green' : 'red'}">
-                        ${totalProfit > 0 ? '+' : ''}${totalProfit.toFixed(4)}%
-                    </td>
-                    <td>${directionHTML}</td>
-                    <td class="volume">${formatVolume(bnVolume)}</td>
-                    <td class="volume">${formatVolume(byVolume)}</td>
-                    <td>${byPrice.toFixed(6)}</td>
-                    <td>${bnPrice.toFixed(6)}</td>
-                    <td>${br.toFixed(5)}%</td>
-                    <td>${bn.toFixed(5)}%</td>
-                </tr>
-            `});
         }
 
-        // ЗВУК + МИГАНИЕ
-        const soundThreshold = parseFloat(document.getElementById('sound-threshold').value) || 0.5;
-        const hasAlert = rows.some(r => r.totalProfit >= soundThreshold);
+        // Защита от случайного выделения текста при двойном тапе на мобилках
+        document.addEventListener('touchstart', function(){}, { passive: true });
+    </script>
 
-        if (hasAlert) {
-            startContinuousAlert();
-        } else {
-            stopContinuousAlert();
-        }
-
-        previousBest = bestTotal;
-
-        rows.sort((a,b) => b.totalProfit - a.totalProfit);
-        const limit = parseInt(document.getElementById('limit-select').value) || 10;
-        document.getElementById('tbody').innerHTML = rows.slice(0, limit).map(r => r.html).join('');
-        document.getElementById('last-update').innerHTML = `Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
-    } catch (e) { 
-        console.error(e);
-        document.getElementById('tbody').innerHTML = `<tr><td colspan="14" style="color:#ff7b72">Ошибка сети</td></tr>`;
-    }
-}
-
-function updateNow() { 
-    document.getElementById('last-update').innerHTML = "Обновляю..."; 
-    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    update(); 
-}
-
-setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleString('ru-RU'), 1000);
-update();
-setInterval(update, 60000);
-document.getElementById('ticker-input').addEventListener('keyup', e => { if (e.key === 'Enter') calcSpread(); });
-</script>
 </body>
 </html>
