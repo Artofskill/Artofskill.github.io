@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spread Alert</title>
+    <title>Spread Alert by Artofskill</title>
+    <!-- Добавляем Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Базовые стили (оставлены без изменений) */
         body { 
@@ -13,23 +15,23 @@
             margin: 0; 
             padding: 0;
         }
-h1 {
-        text-align: center;
-        font-size: 2.8em;
-        font-weight: 900;
-        background: linear-gradient(90deg, #00f5ff, #ff00ff);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin: 20px 0 10px;
-    }
-    .subtitle {
-        text-align: center;
-        color: var(--accent2);
-        font-size: 1.3em;
-        font-weight: 600;
-        margin-bottom: 25px;
-    }
+        h1 { 
+            text-align: center; 
+            color: #58a6ff; 
+            font-size: 1.8em; 
+            margin: 15px 0 20px 0; 
+        }
+
+        /* ФИКСИРОВАННЫЙ верхний блок */
+        .header-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: #0d1117;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
 
         /* Блок времени вверху */
         .time-block {
@@ -97,6 +99,12 @@ h1 {
             box-shadow: 0 0 10px rgba(255, 123, 114, 0.3);
         }
 
+        /* Основной контент с отступом для фиксированного заголовка */
+        .main-content {
+            margin-top: 180px; /* Отступ для фиксированного заголовка */
+            padding-bottom: 20px;
+        }
+
         /* Стили для десктопной версии */
         .wrapper { 
             display: grid;
@@ -119,18 +127,32 @@ h1 {
             box-sizing: border-box;
         }
 
-        /* Новый блок для графика (более высокий) */
+        /* Блок для графика TradingView */
         .chart-block { 
             background: #161b22; 
             padding: 18px;
             border-radius: 16px; 
             box-shadow: 0 8px 30px rgba(0,0,0,0.6); 
-            height: 700px; /* Меньше чем основные блоки */
+            height: 700px;
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
-            margin-top: 15px;
-            grid-column: 1 / -1; /* Занимает всю ширину */
+            margin: 15px;
+            grid-column: 1 / -1;
+        }
+
+        /* НОВЫЙ: Блок для графика Chart.js */
+        .chartjs-block {
+            background: #161b22;
+            padding: 18px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+            height: 500px; /* Высота для графика */
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            margin: 15px;
+            grid-column: 1 / -1; /* На всю ширину */
         }
 
         .block h2 { 
@@ -143,6 +165,13 @@ h1 {
         .chart-block h2 { 
             color: #58a6ff; 
             margin: 0 0 15px 0; 
+            font-size: 1.3em;
+            text-align: center;
+        }
+
+        .chartjs-block h2 {
+            color: #7ffe94;
+            margin: 0 0 15px 0;
             font-size: 1.3em;
             text-align: center;
         }
@@ -240,7 +269,7 @@ h1 {
             line-height: 1.5;
         }
 
-        /* Контейнер для графика */
+        /* Контейнер для графика TradingView */
         .chart-container {
             flex: 1;
             background: #21262d;
@@ -255,12 +284,27 @@ h1 {
             min-height: 600px;
         }
 
-        /* Кнопка для обновления графика */
+        /* НОВЫЙ: Контейнер для графика Chart.js */
+        .chartjs-container {
+            flex: 1;
+            background: #21262d;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #spread-chart {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Кнопки для управления графиками */
         .chart-controls {
             display: flex;
             gap: 10px;
             margin-top: 10px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .chart-btn {
@@ -272,6 +316,7 @@ h1 {
             font-size: 0.9em;
             font-weight: bold;
             cursor: pointer;
+            transition: all 0.3s;
         }
 
         .chart-btn:hover {
@@ -284,6 +329,22 @@ h1 {
 
         .chart-btn.update:hover {
             background: #7ffe94;
+        }
+
+        .chart-btn.clear {
+            background: #ff7b72;
+        }
+
+        .chart-btn.clear:hover {
+            background: #ff9999;
+        }
+
+        /* Счетчик точек на графике */
+        .chart-counter {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #8b949e;
         }
 
         /* Единые размеры для всех блоков */
@@ -373,7 +434,7 @@ h1 {
         .position-row {
             display: flex;
             justify-content: space-between;
-            align-items: stretch; /* Выравнивание по высоте */
+            align-items: stretch;
             gap: 10px;
         }
 
@@ -382,7 +443,7 @@ h1 {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 80px; /* Фиксированная минимальная высота для выравнивания */
+            min-height: 80px;
         }
 
         .position-title {
@@ -460,6 +521,14 @@ h1 {
                 margin: 10px 0 15px 0;
             }
             
+            .header-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+            }
+            
             .time-block {
                 height: 80px;
                 margin: 0 10px 10px 10px;
@@ -481,22 +550,33 @@ h1 {
                 padding: 3px 10px;
             }
             
+            .main-content {
+                margin-top: 140px; /* Меньший отступ для мобильных */
+                padding: 0 10px 20px 10px;
+            }
+            
             .wrapper {
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
-                padding: 0 10px;
+                padding: 0;
             }
             
             .block {
                 height: auto;
                 min-height: 500px;
                 padding: 15px;
+                margin: 0 0 10px 0;
             }
             
             .chart-block {
-                height: 500px;
-                margin-top: 10px;
+                height: 400px;
+                margin: 0 0 10px 0;
+            }
+            
+            .chartjs-block {
+                height: 350px;
+                margin: 0 0 10px 0;
             }
             
             .block h2 {
@@ -504,13 +584,14 @@ h1 {
                 margin-bottom: 10px;
             }
             
-            .chart-block h2 {
+            .chart-block h2,
+            .chartjs-block h2 {
                 font-size: 1.2em;
             }
             
             input, button, select {
                 padding: 10px 12px;
-                font-size: 16px; /* Для лучшего UX на мобильных */
+                font-size: 16px;
             }
             
             .content {
@@ -562,105 +643,179 @@ h1 {
             }
             
             #tradingview-chart {
-                min-height: 400px;
+                min-height: 300px;
             }
+            
+            .chart-controls {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .chart-btn {
+                width: 100%;
+            }
+        }
+
+        /* Для очень маленьких экранов */
+        @media (max-width: 480px) {
+            .time-block {
+                height: 70px;
+            }
+            
+            .ntp-time {
+                font-size: 2em;
+            }
+            
+            .main-content {
+                margin-top: 130px;
+            }
+            
+            .chart-block {
+                height: 350px;
+            }
+            
+            .chartjs-block {
+                height: 300px;
+            }
+        }
+
+        /* Стили для полосы прокрутки */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0d1117;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #58a6ff;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #79c0ff;
         }
     </style>
 </head>
 <body>
-    <!-- Блок времени в самом верху -->
-    <div class="time-block">
-        <button class="refresh-btn" onclick="syncNTPTime()">↻ Обновить время</button>
-        <div class="ntp-time" id="ntp-clock">00:00:00</div>
-        <div class="funding-timer" id="funding-timer" style="display: none;"></div>
+    <!-- ФИКСИРОВАННЫЙ верхний блок -->
+    <div class="header-container">
+        <!-- Блок времени в самом верху -->
+        <div class="time-block">
+            <button class="refresh-btn" onclick="syncNTPTime()">↻ Обновить время</button>
+            <div class="ntp-time" id="ntp-clock">00:00:00</div>
+            <div class="funding-timer" id="funding-timer" style="display: none;"></div>
+        </div>
+
+        <h1>Spread Alert by Artofskill</h1>
     </div>
 
-    <h1>Spread Alert</h1>
-
-    <div class="wrapper">
-        <!-- 1. LIVE спред -->
-        <div class="block">
-            <h2>LIVE Spread</h2>
-            <input type="text" id="ticker" placeholder="Введите тикер" autofocus>
-            <div style="margin:10px 0; font-size: 0.9em;">
-                ≤ <input type="number" id="min-alert" step="0.01" value="0.80" style="width:70px;"> %
-                ≥ <input type="number" id="max-alert" step="0.01" value="2.00" style="width:70px;"> %
+    <!-- Основной контент -->
+    <div class="main-content">
+        <div class="wrapper">
+            <!-- 1. LIVE спред -->
+            <div class="block">
+                <h2>LIVE Spread</h2>
+                <input type="text" id="ticker" placeholder="Введите тикер" autofocus>
+                <div style="margin:10px 0; font-size: 0.9em;">
+                    ≤ <input type="number" id="min-alert" step="0.01" value="0.80" style="width:70px;"> %
+                    ≥ <input type="number" id="max-alert" step="0.01" value="2.00" style="width:70px;"> %
+                </div>
+                <button id="start-btn" onclick="startMonitoring()">СТАРТ</button>
+                <button id="stop-btn" onclick="stopMonitoring()" style="display:none;">СТОП</button>
+                <div class="content" id="result">Готов к запуску</div>
             </div>
-            <button id="start-btn" onclick="startMonitoring()">СТАРТ</button>
-            <button id="stop-btn" onclick="stopMonitoring()" style="display:none;">СТОП</button>
-            <div class="content" id="result">Готов к запуску</div>
-        </div>
 
-        <!-- 2. Моя позиция -->
-        <div class="block">
-            <h2>My Position</h2>
-            
-            <div class="position-container">
-                <!-- Long позиция -->
-                <div class="position-row">
-                    <div class="position-section">
-                        <div class="position-title">Long</div>
-                        <div class="position-subtitle">Биржа</div>
-                        <select id="long-exchange" class="exchange-select">
-                            <option value="bybit">Bybit</option>
-                            <option value="binance">Binance</option>
-                        </select>
-                        <div class="position-subtitle">Вход</div>
-                        <input type="number" step="0.000001" id="long-price" placeholder="0.146638" class="position-input" oninput="updatePositionUsdt()">
+            <!-- 2. Моя позиция -->
+            <div class="block">
+                <h2>My Position</h2>
+                
+                <div class="position-container">
+                    <!-- Long позиция -->
+                    <div class="position-row">
+                        <div class="position-section">
+                            <div class="position-title">Long</div>
+                            <div class="position-subtitle">Биржа</div>
+                            <select id="long-exchange" class="exchange-select">
+                                <option value="bybit">Bybit</option>
+                                <option value="binance">Binance</option>
+                            </select>
+                            <div class="position-subtitle">Вход</div>
+                            <input type="number" step="0.000001" id="long-price" placeholder="0.146638" class="position-input" oninput="updatePositionUsdt()">
+                        </div>
+                        
+                        <!-- Short позиция -->
+                        <div class="position-section">
+                            <div class="position-title">Short</div>
+                            <div class="position-subtitle">Биржа</div>
+                            <select id="short-exchange" class="exchange-select">
+                                <option value="bybit">Bybit</option>
+                                <option value="binance" selected>Binance</option>
+                            </select>
+                            <div class="position-subtitle">Вход</div>
+                            <input type="number" step="0.000001" id="short-price" placeholder="0.148440" class="position-input" oninput="updatePositionUsdt()">
+                        </div>
                     </div>
-                    
-                    <!-- Short позиция -->
-                    <div class="position-section">
-                        <div class="position-title">Short</div>
-                        <div class="position-subtitle">Биржа</div>
-                        <select id="short-exchange" class="exchange-select">
-                            <option value="bybit">Bybit</option>
-                            <option value="binance" selected>Binance</option>
-                        </select>
-                        <div class="position-subtitle">Вход</div>
-                        <input type="number" step="0.000001" id="short-price" placeholder="0.148440" class="position-input" oninput="updatePositionUsdt()">
+
+                    <!-- Размер позиции -->
+                    <div class="position-size-row">
+                        <div class="position-size-label">Размер позиции (монеты)</div>
+                        <input type="number" id="position-size" placeholder="150000" class="position-size-input" oninput="updatePositionUsdt()">
+                        <!-- Здесь будет отображаться размер позиции в USDT -->
+                        <div class="position-usdt" id="position-usdt-display">Размер в USDT: -</div>
                     </div>
                 </div>
+                
+                <button onclick="calcMySpread()">РАССЧИТАТЬ</button>
+                <div class="content" id="my-result">—</div>
+            </div>
 
-                <!-- Размер позиции -->
-                <div class="position-size-row">
-                    <div class="position-size-label">Размер позиции (монеты)</div>
-                    <input type="number" id="position-size" placeholder="150000" class="position-size-input" oninput="updatePositionUsdt()">
-                    <!-- Здесь будет отображаться размер позиции в USDT -->
-                    <div class="position-usdt" id="position-usdt-display">Размер в USDT: -</div>
+            <!-- 3. Текущий профит -->
+            <div class="block">
+                <h2>Current Profit</h2>
+                <div class="content" id="profit-result">
+                    Запусти мониторинг и введи позицию
                 </div>
             </div>
-            
-            <button onclick="calcMySpread()">РАССЧИТАТЬ</button>
-            <div class="content" id="my-result">—</div>
-        </div>
 
-        <!-- 3. Текущий профит -->
-        <div class="block">
-            <h2>Current Profit</h2>
-            <div class="content" id="profit-result">
-                Запусти мониторинг и введи позицию
+            <!-- 4. Funding Info -->
+            <div class="block">
+                <h2>Funding Info</h2>
+                <div class="funding-result" id="funding-result">
+                    Запусти мониторинг
+                </div>
             </div>
         </div>
 
-        <!-- 4. Funding Info -->
-        <div class="block">
-            <h2>Funding Info</h2>
-            <div class="funding-result" id="funding-result">
-                Запусти мониторинг
+        <!-- НОВЫЙ: 5. Блок графика спреда Chart.js -->
+        <div class="chartjs-block">
+            <h2>📊 История спреда (Chart.js)</h2>
+            <div class="chart-controls">
+                <button class="chart-btn update" onclick="startChartUpdates()">▶️ Начать запись</button>
+                <button class="chart-btn" onclick="stopChartUpdates()">⏸️ Остановить запись</button>
+                <button class="chart-btn clear" onclick="clearChartData()">🗑️ Очистить график</button>
+            </div>
+            <div class="chart-counter" id="chart-counter">
+                Записей: 0/60
+            </div>
+            <div class="chartjs-container">
+                <canvas id="spread-chart"></canvas>
             </div>
         </div>
-    </div>
 
-    <!-- Блок для графика спреда -->
-    <div class="chart-block">
-        <h2>📈 График спреда между биржами (Binance / Bybit)</h2>
-        <div class="chart-controls">
-            <button class="chart-btn update" onclick="updateChart()">🔄 Обновить график</button>
-            <button class="chart-btn" onclick="openTradingView()">🌐 Открыть в TradingView</button>
-        </div>
-        <div class="chart-container">
-            <div id="tradingview-chart"></div>
+        <!-- 6. Блок для графика TradingView -->
+        <div class="chart-block">
+            <h2>📈 График спреда между биржами (TradingView)</h2>
+            <div class="chart-controls">
+                <button class="chart-btn update" onclick="updateTradingViewChart()">🔄 Обновить график</button>
+                <button class="chart-btn" onclick="openTradingView()">🌐 Открыть в TradingView</button>
+            </div>
+            <div class="chart-container">
+                <div id="tradingview-chart"></div>
+            </div>
         </div>
     </div>
 
@@ -670,8 +825,210 @@ h1 {
         let ntpOffset = 0;
         let fundingTimerActive = false;
         let fundingTimerInterval = null;
-        let currentTimerFundingSpread = 0; // Сохраняем спред для таймера
-        let currentTicker = ''; // Текущий тикер для графика
+        let currentTimerFundingSpread = 0;
+        let currentTicker = '';
+        
+        // Переменные для графика Chart.js
+        let spreadChart = null;
+        let chartData = {
+            labels: [],
+            datasets: [{
+                label: 'Спред %',
+                data: [],
+                borderColor: '#58a6ff',
+                backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: function(context) {
+                    const value = context.dataset.data[context.dataIndex];
+                    return value >= 0 ? '#56d364' : '#ff7b72';
+                },
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2
+            }]
+        };
+        let maxDataPoints = 60; // Максимальное количество точек на графике
+        let chartUpdateInterval = null;
+        let isChartRecording = false;
+
+        // Инициализация графика Chart.js
+        function initChart() {
+            const ctx = document.getElementById('spread-chart').getContext('2d');
+            
+            spreadChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#161b22',
+                            titleColor: '#ffa657',
+                            bodyColor: '#c9d1d9',
+                            borderColor: '#30363d',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Спред: ${context.parsed.y.toFixed(3)}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: '#30363d',
+                                borderColor: '#30363d'
+                            },
+                            ticks: {
+                                color: '#8b949e',
+                                maxTicksLimit: 10
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: '#30363d',
+                                borderColor: '#30363d'
+                            },
+                            ticks: {
+                                color: '#8b949e',
+                                callback: function(value) {
+                                    return value.toFixed(2) + '%';
+                                }
+                            },
+                            suggestedMin: -2,
+                            suggestedMax: 2
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    elements: {
+                        point: {
+                            radius: 4,
+                            hoverRadius: 6
+                        }
+                    }
+                }
+            });
+            
+            updateChartCounter();
+        }
+
+        // Обновление графика новыми данными
+        function updateChart(spreadValue) {
+            if (!spreadChart) return;
+            
+            const now = new Date();
+            const timeLabel = now.getHours().toString().padStart(2, '0') + ':' + 
+                             now.getMinutes().toString().padStart(2, '0') + ':' + 
+                             now.getSeconds().toString().padStart(2, '0');
+            
+            // Добавляем новую точку
+            chartData.labels.push(timeLabel);
+            chartData.datasets[0].data.push(spreadValue);
+            
+            // Удаляем старые точки, если превышен лимит
+            if (chartData.labels.length > maxDataPoints) {
+                chartData.labels.shift();
+                chartData.datasets[0].data.shift();
+            }
+            
+            // Автоматическое масштабирование оси Y
+            const dataValues = chartData.datasets[0].data;
+            if (dataValues.length > 0) {
+                const minValue = Math.min(...dataValues);
+                const maxValue = Math.max(...dataValues);
+                const padding = Math.max(Math.abs(minValue), Math.abs(maxValue)) * 0.2;
+                
+                spreadChart.options.scales.y.min = minValue - padding;
+                spreadChart.options.scales.y.max = maxValue + padding;
+            }
+            
+            spreadChart.update();
+            updateChartCounter();
+        }
+
+        // Обновление счетчика точек
+        function updateChartCounter() {
+            const count = chartData.labels.length;
+            const counterElement = document.getElementById('chart-counter');
+            counterElement.textContent = `Записей: ${count}/${maxDataPoints}`;
+            
+            // Меняем цвет при приближении к лимиту
+            if (count >= maxDataPoints * 0.8) {
+                counterElement.style.color = '#ff7b72';
+            } else if (count >= maxDataPoints * 0.5) {
+                counterElement.style.color = '#ffa657';
+            } else {
+                counterElement.style.color = '#8b949e';
+            }
+        }
+
+        // Запуск автоматического обновления графика
+        function startChartUpdates() {
+            if (isChartRecording) return;
+            
+            if (!monitorActive) {
+                alert('Запустите мониторинг спреда сначала!');
+                return;
+            }
+            
+            isChartRecording = true;
+            document.querySelector('.chartjs-block .chart-controls .update').textContent = '⏺️ Запись...';
+            document.querySelector('.chartjs-block .chart-controls .update').style.background = '#ff7b72';
+            
+            // График будет обновляться в функции monitorLoop
+        }
+
+        // Остановка обновления графика
+        function stopChartUpdates() {
+            isChartRecording = false;
+            document.querySelector('.chartjs-block .chart-controls .update').textContent = '▶️ Начать запись';
+            document.querySelector('.chartjs-block .chart-controls .update').style.background = '#56d364';
+        }
+
+        // Очистка данных графика
+        function clearChartData() {
+            chartData.labels = [];
+            chartData.datasets[0].data = [];
+            
+            if (spreadChart) {
+                spreadChart.update();
+            }
+            
+            updateChartCounter();
+        }
+
+        // Обновление графика TradingView
+        function updateTradingViewChart() {
+            const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+            if (!ticker) {
+                alert('Введите тикер для отображения графика!');
+                return;
+            }
+            
+            loadTradingViewChart(ticker);
+            
+            // Показываем уведомление
+            const updateBtn = document.querySelector('.chart-block .chart-btn.update');
+            const originalText = updateBtn.textContent;
+            updateBtn.textContent = '✓ График обновлен!';
+            updateBtn.style.background = '#56d364';
+            
+            setTimeout(() => {
+                updateBtn.textContent = originalText;
+                updateBtn.style.background = '#56d364';
+            }, 2000);
+        }
 
         async function syncNTPTime() {
             try {
@@ -745,16 +1102,14 @@ h1 {
             const timerText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             
             // Показываем таймер только если осталось меньше 1 часа
-            if (timeLeft <= 3600000) { // 1 час в миллисекундах
+            if (timeLeft <= 3600000) {
                 const timerElement = document.getElementById('funding-timer');
                 timerElement.textContent = `Фандинг через: ${timerText}`;
                 timerElement.style.display = 'block';
                 
-                // Обновляем цвет только если спред изменился
                 if (fundingSpread !== currentTimerFundingSpread) {
                     currentTimerFundingSpread = fundingSpread;
                     
-                    // Устанавливаем цвет в зависимости от спреда фандинга
                     if (fundingSpread >= 0) {
                         timerElement.className = 'funding-timer green';
                     } else {
@@ -764,7 +1119,6 @@ h1 {
                 
                 fundingTimerActive = true;
                 
-                // Запускаем интервал для обновления таймера
                 if (!fundingTimerInterval) {
                     fundingTimerInterval = setInterval(() => {
                         updateFundingTimer(nextFundingTime, currentTimerFundingSpread);
@@ -802,7 +1156,6 @@ h1 {
             const longPrice = parseFloat(document.getElementById('long-price').value);
             
             if (positionSize && shortPrice) {
-                // Размер позиции в USDT (по цене шорта)
                 const positionUsdt = positionSize * shortPrice;
                 document.getElementById('position-usdt-display').innerHTML = 
                     `Размер в USDT: <strong>${positionUsdt.toFixed(2)} USDT</strong>`;
@@ -826,13 +1179,10 @@ h1 {
                 return null;
             }
             
-            // Сумма позиций в USDT
             const longPositionUsdt = positionSize * longPrice;
             const shortPositionUsdt = positionSize * shortPrice;
             const totalPositionUsdt = longPositionUsdt + shortPositionUsdt;
-            
-            // Комиссия 0.25%
-            const commissionUsdt = totalPositionUsdt * 0.0025; // 0.25% = 0.0025
+            const commissionUsdt = totalPositionUsdt * 0.0025;
             
             return {
                 longPositionUsdt: longPositionUsdt,
@@ -855,7 +1205,6 @@ h1 {
             
             if (!price) return 0;
             
-            // Расчет: fundingRate (в процентах) × позиция в USDT / 100
             const positionUsdt = positionSize * price;
             const fundingUsdt = (fundingRatePercent * positionUsdt) / 100;
             
@@ -871,77 +1220,34 @@ h1 {
             }
             
             const symbol = ticker.toUpperCase() + 'USDT';
-            // ИСПРАВЛЕНО: теперь используем деление вместо вычитания
-            const expression = `BINANCE:${symbol}.P/BYBIT:${symbol}.P`;
+            const expression = `BINANCE:${symbol}.P - BYBIT:${symbol}.P`;
             
             currentTicker = symbol;
             
-            console.log('Загрузка графика с выражением:', expression);
-            
             // Создаем виджет TradingView
-            try {
-                new TradingView.widget({
-                    "container_id": "tradingview-chart",
-                    "width": "100%",
-                    "height": "100%",
-                    "symbol": expression,
-                    "interval": "15",
-                    "timezone": "exchange",
-                    "theme": "dark",
-                    "style": "1",
-                    "locale": "ru",
-                    "toolbar_bg": "#0d1117",
-                    "enable_publishing": false,
-                    "allow_symbol_change": false,
-                    "hide_side_toolbar": false,
-                    "details": true,
-                    "studies": [
-                        "MASimple@tv-basicstudies",
-                        "Volume@tv-basicstudies"
-                    ],
-                    "show_popup_button": true,
-                    "popup_width": "1000",
-                    "popup_height": "650",
-                    "overrides": {
-                        "mainSeriesProperties.priceAxisProperties.percentage": true, // Показывать в процентах
-                        "paneProperties.background": "#0d1117",
-                        "paneProperties.vertGridProperties.color": "#30363d",
-                        "paneProperties.horzGridProperties.color": "#30363d"
-                    }
-                });
-            } catch (error) {
-                console.error('Ошибка загрузки графика TradingView:', error);
-                document.getElementById('tradingview-chart').innerHTML = 
-                    '<div style="display: flex; justify-content: center; align-items: center; height: 100%; color: #ff7b72; text-align: center; padding: 20px;">' +
-                    '<div>' +
-                    '<div style="font-size: 1.5em; margin-bottom: 10px;">⚠️</div>' +
-                    '<div style="font-weight: bold; margin-bottom: 5px;">Ошибка загрузки графика</div>' +
-                    '<div>Попробуйте обновить страницу<br>или проверьте тикер</div>' +
-                    '</div>' +
-                    '</div>';
-            }
-        }
-
-        // Функция для обновления графика
-        function updateChart() {
-            const ticker = document.getElementById('ticker').value.trim().toUpperCase();
-            if (!ticker) {
-                alert('Введите тикер для отображения графика!');
-                return;
-            }
-            
-            loadTradingViewChart(ticker);
-            
-            // Показываем уведомление
-            const updateBtn = document.querySelector('.chart-btn.update');
-            const originalText = updateBtn.textContent;
-            updateBtn.textContent = '✓ График обновлен!';
-            updateBtn.style.background = '#56d364';
-            
-            setTimeout(() => {
-                updateBtn.textContent = originalText;
-                updateBtn.style.background = '#56d364';
-            }, 2000);
+            new TradingView.widget({
+                "container_id": "tradingview-chart",
+                "width": "100%",
+                "height": "100%",
+                "symbol": expression,
+                "interval": "15",
+                "timezone": "exchange",
+                "theme": "dark",
+                "style": "1",
+                "locale": "ru",
+                "toolbar_bg": "#0d1117",
+                "enable_publishing": false,
+                "allow_symbol_change": false,
+                "hide_side_toolbar": false,
+                "details": true,
+                "studies": [
+                    "MASimple@tv-basicstudies",
+                    "Volume@tv-basicstudies"
+                ],
+                "show_popup_button": true,
+                "popup_width": "1000",
+                "popup_height": "650"
+            });
         }
 
         // Функция для открытия в TradingView
@@ -953,8 +1259,7 @@ h1 {
             }
             
             const symbol = ticker + 'USDT';
-            // ИСПРАВЛЕНО: используем деление
-            const expression = `BINANCE:${symbol}.P/BYBIT:${symbol}.P`;
+            const expression = `BINANCE:${symbol}.P - BYBIT:${symbol}.P`;
             const url = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(expression)}`;
             
             window.open(url, '_blank');
@@ -1059,19 +1364,14 @@ h1 {
                 return null;
             }
 
-            // Получаем текущие цены для выбранных бирж
             const longCurrentPrice = getCurrentPrice(myLongExchange);
             const shortCurrentPrice = getCurrentPrice(myShortExchange);
             
             if (!longCurrentPrice || !shortCurrentPrice) return null;
 
-            // PnL для лонга: (текущая цена - цена входа) / цена входа * 100%
             const longPnLPercent = ((longCurrentPrice - myLongPrice) / myLongPrice * 100).toFixed(3);
-            
-            // PnL для шорта: (цена входа - текущая цена) / цена входа * 100%
             const shortPnLPercent = ((myShortPrice - shortCurrentPrice) / myShortPrice * 100).toFixed(3);
             
-            // Расчет PnL в USDT
             let longPnLUsdt = 0;
             let shortPnLUsdt = 0;
             let totalPnLUsdt = 0;
@@ -1156,7 +1456,6 @@ h1 {
                 ${commissionHtml}
             `;
             
-            // Обновляем размер позиции в USDT при пересчете
             updatePositionUsdt();
         }
 
@@ -1169,9 +1468,7 @@ h1 {
             
             if (!longCurrentPrice || !shortCurrentPrice) return null;
             
-            // Рыночный спред: (текущая цена шорта - текущая цена лонга) / текущая цена лонга * 100%
             const marketSpread = ((shortCurrentPrice - longCurrentPrice) / longCurrentPrice * 100).toFixed(3);
-            
             return marketSpread;
         }
 
@@ -1179,36 +1476,22 @@ h1 {
         function updateFundingInfo(data) {
             if (!data) return;
             
-            // Получаем данные фандинга для выбранных бирж
             const longFunding = getFundingData(myLongExchange, data);
             const shortFunding = getFundingData(myShortExchange, data);
             
             if (!longFunding || !shortFunding) return;
             
-            // Рассчитываем спред фандинга с учетом позиций
-            // Для лонга мы платим фандинг, для шорта получаем
-            // Поэтому общий эффект: funding_short - funding_long
             const fundingSpread = (shortFunding.rate - longFunding.rate).toFixed(4);
             currentFundingSpread = parseFloat(fundingSpread);
             
-            // Сохраняем ближайшее время фандинга
             nextFundingTime = Math.min(longFunding.nextTime, shortFunding.nextTime);
-            
-            // Обновляем таймер фандинга
             updateFundingTimer(nextFundingTime, currentFundingSpread);
             
-            // Расчет фандинга в USDT для каждой позиции
-            // ВАЖНО: Для лонга отрицательный фандинг = мы получаем деньги, а не платим!
-            // Для шорта положительный фандинг = мы получаем деньги
             const longFundingUsdt = calculateFundingUsdt(longFunding.rate, 'long', positionSize);
             const shortFundingUsdt = calculateFundingUsdt(shortFunding.rate, 'short', positionSize);
             
-            // Определяем знаки для отображения в USDT
-            // Для лонга: если фандинг отрицательный → мы получаем → "+"
-            const longFundingDisplayUsdt = longFundingUsdt * -1; // Инвертируем знак для лонга
+            const longFundingDisplayUsdt = longFundingUsdt * -1;
             const shortFundingDisplayUsdt = shortFundingUsdt;
-            
-            // Общий фандинг в USDT
             const totalFundingUsdt = shortFundingUsdt - longFundingUsdt;
             
             document.getElementById('funding-result').innerHTML = `
@@ -1264,10 +1547,15 @@ h1 {
             if (data.bybitPrice !== lastPrices.bybit || data.binancePrice !== lastPrices.binance) {
                 lastPrices = { bybit: data.bybitPrice, binance: data.binancePrice };
 
-                // Расчет спреда между Bybit и Binance (для блока LIVE спред)
+                // Расчет спреда между Bybit и Binance
                 const diff = ((data.bybitPrice - data.binancePrice) / data.binancePrice * 100);
                 const absDiff = Math.abs(diff).toFixed(3);
-                const sign = diff > 0 ? '+' : '';
+                const sign = diff > 0 ? '' : '-';
+                
+                // Обновляем график Chart.js, если включена запись
+                if (isChartRecording) {
+                    updateChart(diff);
+                }
 
                 let extra = '';
                 let className = '';
@@ -1294,10 +1582,7 @@ h1 {
                     ${extra}
                 `;
 
-                // Обновляем Funding Info
                 updateFundingInfo(data);
-
-                // Обновляем PnL и профит
                 updatePositionDisplay();
                 updateProfit();
             }
@@ -1325,10 +1610,8 @@ h1 {
             myShortExchange = shortExchange;
             positionSize = size || 0;
             
-            // Спред рассчитывается как разница между ценами входа
             mySpread = ((shortPrice - longPrice) / longPrice * 100).toFixed(3);
 
-            // Обновляем отображение позиции с PnL и комиссией
             updatePositionDisplay();
             updateProfit();
         }
@@ -1339,7 +1622,6 @@ h1 {
                 return;
             }
 
-            // Получаем рыночный спред между выбранных бирж
             const marketSpread = calculateMarketSpread();
             
             if (!marketSpread) {
@@ -1347,11 +1629,9 @@ h1 {
                 return;
             }
 
-            // Профит = наш спред - текущий рыночный спред
             const profit = (mySpread - marketSpread).toFixed(3);
             const color = profit > 0 ? '#56d364' : '#ff7b72';
 
-            // Расчет PnL в USDT
             const pnlData = calculatePnL();
             let usdtHtml = '';
             
@@ -1405,7 +1685,7 @@ h1 {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             lastPrices = { bybit: null, binance: null };
             
-            // Загружаем график при запуске мониторинга
+            // Загружаем график TradingView при запуске мониторинга
             loadTradingViewChart(ticker);
             
             monitorLoop();
@@ -1420,7 +1700,10 @@ h1 {
             document.getElementById('funding-result').innerHTML = 'Остановлено';
             document.getElementById('profit-result').innerHTML = 'Мониторинг остановлен';
             
-            // Скрываем таймер фандинга при остановке
+            // Останавливаем запись графика
+            stopChartUpdates();
+            
+            // Скрываем таймер фандинга
             document.getElementById('funding-timer').style.display = 'none';
             fundingTimerActive = false;
             if (fundingTimerInterval) {
@@ -1432,8 +1715,9 @@ h1 {
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', function() {
             updatePositionUsdt();
+            initChart(); // Инициализируем график Chart.js
             
-            // Показываем сообщение в блоке графика
+            // Показываем сообщение в блоке графика TradingView
             document.getElementById('tradingview-chart').innerHTML = 
                 '<div style="display: flex; justify-content: center; align-items: center; height: 100%; color: #8b949e; text-align: center; padding: 20px;">' +
                 '<div>' +
@@ -1449,4 +1733,3 @@ h1 {
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </body>
 </html>
-
