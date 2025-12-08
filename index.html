@@ -28,47 +28,79 @@
             overflow-x: hidden;
         }
         
-        /* Анимированный фон */
-        .animated-bg {
+        /* Контейнер для всех GIF */
+        .gif-background {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
-            background: linear-gradient(-45deg, 
-                #0d1117, 
-                #161b22, 
-                #0a2e4a, 
-                #161b22,
-                #0d1117,
-                #0f3b5a);
-            background-size: 400% 400%;
-            animation: gradientAnimation 20s ease infinite;
-            opacity: 0.8;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
         }
         
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* Стиль для отдельных GIF */
+        .floating-gif {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out, transform 0.5s ease;
+            filter: drop-shadow(0 0 15px rgba(88, 166, 255, 0.4));
+            z-index: 1;
         }
         
-        /* Затемняющий слой для лучшей читаемости */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(13, 17, 23, 0.7);
-            z-index: -1;
+        .floating-gif.active {
+            opacity: 0.85;
+        }
+        
+        .floating-gif.fade-out {
+            opacity: 0;
+        }
+        
+        .floating-gif img {
+            width: 160px;
+            height: auto;
+            border-radius: 12px;
+            border: 2px solid rgba(88, 166, 255, 0.4);
+            box-shadow: 0 0 40px rgba(0, 245, 255, 0.25);
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Левая сторона */
+        .floating-gif.left-side {
+            left: 40px;
+            transform: translateY(-50%);
+            animation: floatLeft 8s ease-in-out infinite;
+        }
+        
+        /* Правая сторона */
+        .floating-gif.right-side {
+            right: 40px;
+            transform: translateY(-50%);
+            animation: floatRight 8s ease-in-out infinite;
+        }
+        
+        @keyframes floatLeft {
+            0%, 100% { transform: translateY(-50%) rotate(0deg); }
+            25% { transform: translateY(calc(-50% - 10px)) rotate(1deg); }
+            50% { transform: translateY(-50%) rotate(0deg); }
+            75% { transform: translateY(calc(-50% + 10px)) rotate(-1deg); }
+        }
+        
+        @keyframes floatRight {
+            0%, 100% { transform: translateY(-50%) rotate(0deg); }
+            25% { transform: translateY(calc(-50% - 10px)) rotate(-1deg); }
+            50% { transform: translateY(-50%) rotate(0deg); }
+            75% { transform: translateY(calc(-50% + 10px)) rotate(1deg); }
         }
 
         .header {
             text-align: center;
             margin-bottom: 50px;
             animation: fadeIn 1s ease-out;
+            position: relative;
+            z-index: 3;
         }
         h1 {
             font-size: 3em;
@@ -91,6 +123,8 @@
             max-width: 1400px;
             margin: 0 auto 60px;
             flex: 1;
+            position: relative;
+            z-index: 3;
         }
         .card {
             background: var(--card);
@@ -100,7 +134,7 @@
             box-shadow: 0 10px 35px rgba(0,0,0,0.6);
             border: 2px solid var(--border);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
+            cursor: default;
             position: relative;
             overflow: hidden;
             animation: slideUp 0.8s ease-out forwards;
@@ -114,10 +148,8 @@
         .card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(88,166,255,0.15), transparent);
             transition: 0.7s;
         }
@@ -152,6 +184,7 @@
             transition: all 0.3s ease;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
         }
         .btn:active {
             transform: scale(0.95);
@@ -164,7 +197,7 @@
             font-size: 0.95em;
             border-top: 1px solid var(--border);
             position: relative;
-            z-index: 1;
+            z-index: 3;
         }
 
         /* Анимации */
@@ -181,24 +214,56 @@
             .card p { font-size: 1.1em; }
             .btn { font-size: 1.3em; padding: 14px 40px; }
             
-            /* Уменьшаем анимацию на мобильных */
-            .animated-bg {
-                animation: gradientAnimation 25s ease infinite;
+            /* Скрываем GIF на мобильных */
+            .gif-background {
+                display: none;
             }
         }
+        
+        @media (max-width: 1200px) {
+            /* На планшетах уменьшаем GIF и отступы */
+            .floating-gif img {
+                width: 140px;
+            }
+            
+            .floating-gif.left-side {
+                left: 30px;
+            }
+            
+            .floating-gif.right-side {
+                right: 30px;
+            }
+        }
+        
         @media (max-width: 480px) {
             h1 { font-size: 2em; }
             .header { margin-bottom: 40px; }
             .card h2 { font-size: 1.5em; }
             .btn { font-size: 1.2em; padding: 14px 35px; }
         }
+        
+        /* Для очень широких экранов */
+        @media (min-width: 1600px) {
+            .floating-gif img {
+                width: 180px;
+            }
+            
+            .floating-gif.left-side {
+                left: 50px;
+            }
+            
+            .floating-gif.right-side {
+                right: 50px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Анимированный фон -->
-    <div class="animated-bg"></div>
-    <div class="overlay"></div>
+    <!-- Контейнер для фоновых GIF -->
+    <div class="gif-background" id="gifBackground">
+        <!-- GIF будут добавляться через JS -->
+    </div>
 
     <div class="header">
         <h1>Artofskill</h1>
@@ -206,25 +271,23 @@
     </div>
 
     <div class="cards">
-
-        <div class="card" onclick="goTo('dashboard.html')">
+        <div class="card">
             <h2>Dashboard</h2>
             <p>Терминал возможностей<br></p>
-            <div class="btn">Dashboard</div>
+            <div class="btn" onclick="goTo('dashboard.html')">Dashboard</div>
         </div>
 
-        <div class="card" onclick="goTo('spread_alert.html')">
+        <div class="card">
             <h2>Spread Calculator</h2>
             <p>Мониторинг позиции и спреда<br></p>
-            <div class="btn">Calculator</div>
+            <div class="btn" onclick="goTo('spread_alert.html')">Calculator</div>
         </div>
 
-        <div class="card" onclick="goTo('deposit.html')">
+        <div class="card">
             <h2>Deposit</h2>
             <p>Трекер депозита<br></p>
-            <div class="btn">Deposit</div>
+            <div class="btn" onclick="goTo('deposit.html')">Deposit</div>
         </div>
-
     </div>
 
     <div class="footer">
@@ -233,9 +296,8 @@
     </div>
 
     <script>
-        // 100% надёжный переход — работает даже на iOS Safari и Android
+        // 100% надёжный переход
         function goTo(page) {
-            // Пробуем несколько способов (на всякий случай)
             try {
                 window.location.href = page;
             } catch(e) {
@@ -243,15 +305,351 @@
             }
         }
 
-        // Защита от случайного выделения текста при двойном тапе на мобилках
+        // Защита от случайного выделения текста
         document.addEventListener('touchstart', function(){}, { passive: true });
         
-        // Дополнительный эффект при загрузке
+        // Все GIF изображения
+        const gifUrls = [
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/homer-crypto_hfjsrb.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765202331/foke-fokearmy_pqlxbs.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765202330/stock-market-pump-and-dump_rpv10j.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765202329/buy-degen_udyx3u.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765202328/btc-bitcoin_dmmf87.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765202328/trading-stock-trading_bjakgj.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203701/animation.gif_3_xpsodv.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203703/trump-dance-trump-2024_c0rjwf.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203704/leo-angry-wolf_dkga41.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203705/the-wolf-of-wall-street-matthew-mcconaughey_cvbhgo.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203707/elon-musk-smoke_ld5y5b.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203707/wolf-of-wall-street_ticjww.gif',
+            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203708/elon-musk-trump_s-inauguration_aoz8kd.gif'
+        ];
+        
+        // Система управления GIF
+        class GifManager {
+            constructor() {
+                this.container = document.getElementById('gifBackground');
+                this.leftGifs = []; // GIF на левой стороне (массив для порядка)
+                this.rightGifs = []; // GIF на правой стороне (массив для порядка)
+                this.maxPerSide = 3; // Максимум 3 GIF с каждой стороны
+                this.gifDuration = 18000; // 18 секунд
+                this.spawnInterval = 4000; // Новый GIF каждые 4 секунды
+                this.spawnTimer = null;
+                this.isEnabled = window.innerWidth > 768;
+                this.sideMargin = 40; // Отступ от краев в пикселях
+                this.minTopMargin = 100; // Минимальный отступ сверху (чтобы не задевать заголовок)
+                this.minBottomMargin = 100; // Минимальный отступ снизу (чтобы не задевать футер)
+            }
+            
+            // Получить случайную позицию для левой или правой стороны
+            getPositionForSide(side) {
+                const sideGifs = side === 'left' ? this.leftGifs : this.rightGifs;
+                
+                // Если уже есть максимальное количество GIF на этой стороне
+                if (sideGifs.length >= this.maxPerSide) {
+                    return null;
+                }
+                
+                // Доступная высота для размещения GIF
+                const availableHeight = window.innerHeight - this.minTopMargin - this.minBottomMargin;
+                
+                // Если это первый GIF на стороне
+                if (sideGifs.length === 0) {
+                    // Первый GIF - в середине доступной зоны
+                    return {
+                        x: side === 'left' ? this.sideMargin : window.innerWidth - this.sideMargin,
+                        y: this.minTopMargin + availableHeight / 2
+                    };
+                }
+                
+                // Для последующих GIF равномерно распределяем по вертикали
+                const positions = [];
+                const segmentCount = this.maxPerSide + 1; // +1 чтобы были отступы сверху и снизу
+                const segmentHeight = availableHeight / segmentCount;
+                
+                for (let i = 1; i <= this.maxPerSide; i++) {
+                    positions.push(this.minTopMargin + segmentHeight * i);
+                }
+                
+                // Убираем позиции, которые уже заняты
+                const occupiedPositions = sideGifs.map(gif => {
+                    const top = parseFloat(gif.style.top);
+                    return top;
+                });
+                
+                // Находим ближайшую свободную позицию к уже существующим
+                let bestPosition = null;
+                let minDistance = Infinity;
+                
+                for (const pos of positions) {
+                    // Проверяем, не слишком ли близко к другим GIF
+                    let tooClose = false;
+                    for (const occupied of occupiedPositions) {
+                        if (Math.abs(pos - occupied) < segmentHeight * 0.6) {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!tooClose) {
+                        // Вычисляем среднее расстояние до существующих GIF
+                        let totalDistance = 0;
+                        for (const occupied of occupiedPositions) {
+                            totalDistance += Math.abs(pos - occupied);
+                        }
+                        const avgDistance = totalDistance / occupiedPositions.length;
+                        
+                        if (avgDistance < minDistance) {
+                            minDistance = avgDistance;
+                            bestPosition = pos;
+                        }
+                    }
+                }
+                
+                // Если не нашли оптимальную позицию, берем случайную
+                if (bestPosition === null) {
+                    bestPosition = this.minTopMargin + Math.random() * availableHeight;
+                }
+                
+                return {
+                    x: side === 'left' ? this.sideMargin : window.innerWidth - this.sideMargin,
+                    y: bestPosition
+                };
+            }
+            
+            // Получить случайный размер GIF
+            getRandomSize() {
+                const sizes = [140, 150, 160, 170];
+                return sizes[Math.floor(Math.random() * sizes.length)];
+            }
+            
+            // Выбрать сторону для нового GIF
+            chooseSide() {
+                // Если обе стороны заполнены, возвращаем null
+                if (this.leftGifs.length >= this.maxPerSide && this.rightGifs.length >= this.maxPerSide) {
+                    return null;
+                }
+                
+                // Если одна сторона заполнена, выбираем другую
+                if (this.leftGifs.length >= this.maxPerSide) {
+                    return 'right';
+                }
+                if (this.rightGifs.length >= this.maxPerSide) {
+                    return 'left';
+                }
+                
+                // Иначе выбираем сторону со сбалансированным количеством
+                if (this.leftGifs.length < this.rightGifs.length) {
+                    return 'left';
+                } else if (this.rightGifs.length < this.leftGifs.length) {
+                    return 'right';
+                }
+                
+                // Если количество равно, выбираем случайно
+                return Math.random() > 0.5 ? 'left' : 'right';
+            }
+            
+            // Создать новый GIF элемент
+            createGif() {
+                if (!this.isEnabled) return null;
+                
+                // Выбираем сторону
+                const side = this.chooseSide();
+                if (!side) return null;
+                
+                // Получаем позицию
+                const position = this.getPositionForSide(side);
+                if (!position) return null;
+                
+                // Выбираем случайный GIF
+                const gifUrl = gifUrls[Math.floor(Math.random() * gifUrls.length)];
+                const size = this.getRandomSize();
+                
+                // Создаем элемент
+                const gifElement = document.createElement('div');
+                gifElement.className = `floating-gif ${side}-side`;
+                gifElement.style.top = `${position.y}px`;
+                gifElement.dataset.side = side;
+                gifElement.dataset.id = Date.now() + Math.random();
+                
+                const img = document.createElement('img');
+                img.src = gifUrl;
+                img.alt = "Crypto Trading GIF";
+                img.style.width = `${size}px`;
+                img.loading = "lazy";
+                
+                gifElement.appendChild(img);
+                this.container.appendChild(gifElement);
+                
+                // Добавляем в соответствующую коллекцию
+                if (side === 'left') {
+                    this.leftGifs.push(gifElement);
+                } else {
+                    this.rightGifs.push(gifElement);
+                }
+                
+                // Плавное появление с задержкой
+                setTimeout(() => {
+                    gifElement.classList.add('active');
+                }, 300);
+                
+                // Автоматическое удаление через указанное время
+                const removeTimeout = setTimeout(() => {
+                    this.removeGif(gifElement);
+                }, this.gifDuration);
+                
+                gifElement.removeTimeout = removeTimeout;
+                
+                return gifElement;
+            }
+            
+            // Удалить GIF
+            removeGif(gifElement) {
+                const side = gifElement.dataset.side;
+                const collection = side === 'left' ? this.leftGifs : this.rightGifs;
+                
+                // Отменяем таймер если есть
+                if (gifElement.removeTimeout) {
+                    clearTimeout(gifElement.removeTimeout);
+                }
+                
+                // Начинаем анимацию исчезновения
+                gifElement.classList.remove('active');
+                gifElement.classList.add('fade-out');
+                
+                // Удаляем из коллекции
+                const index = collection.indexOf(gifElement);
+                if (index > -1) {
+                    collection.splice(index, 1);
+                }
+                
+                // Удаляем из DOM после анимации
+                setTimeout(() => {
+                    if (gifElement.parentNode) {
+                        gifElement.parentNode.removeChild(gifElement);
+                    }
+                }, 1500);
+            }
+            
+            // Перераспределить GIF на стороне
+            redistributeSide(side) {
+                const collection = side === 'left' ? this.leftGifs : this.rightGifs;
+                const availableHeight = window.innerHeight - this.minTopMargin - this.minBottomMargin;
+                
+                if (collection.length === 0) return;
+                
+                // Равномерное распределение
+                const positions = [];
+                const segmentCount = collection.length + 1;
+                const segmentHeight = availableHeight / segmentCount;
+                
+                for (let i = 1; i <= collection.length; i++) {
+                    positions.push(this.minTopMargin + segmentHeight * i);
+                }
+                
+                // Применяем новые позиции
+                collection.forEach((gif, index) => {
+                    if (index < positions.length) {
+                        gif.style.top = `${positions[index]}px`;
+                    }
+                });
+            }
+            
+            // Запустить систему
+            start() {
+                if (!this.isEnabled) return;
+                
+                // Создаем начальные GIF
+                setTimeout(() => this.createGif(), 500);
+                setTimeout(() => this.createGif(), 1500);
+                setTimeout(() => this.createGif(), 2500);
+                setTimeout(() => this.createGif(), 3500);
+                
+                // Запускаем интервал для создания новых GIF
+                this.spawnTimer = setInterval(() => {
+                    this.createGif();
+                }, this.spawnInterval);
+            }
+            
+            // Остановить систему
+            stop() {
+                if (this.spawnTimer) {
+                    clearInterval(this.spawnTimer);
+                    this.spawnTimer = null;
+                }
+                
+                // Удаляем все активные GIF
+                [...this.leftGifs, ...this.rightGifs].forEach(gif => {
+                    this.removeGif(gif);
+                });
+                
+                this.leftGifs = [];
+                this.rightGifs = [];
+            }
+            
+            // Перезапустить при изменении размера окна
+            restart() {
+                const wasEnabled = this.isEnabled;
+                this.isEnabled = window.innerWidth > 768;
+                
+                if (wasEnabled !== this.isEnabled) {
+                    this.stop();
+                    if (this.isEnabled) {
+                        setTimeout(() => this.start(), 500);
+                    }
+                } else if (this.isEnabled) {
+                    // Перераспределяем существующие GIF
+                    this.redistributeSide('left');
+                    this.redistributeSide('right');
+                }
+            }
+        }
+        
+        // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            // Плавное появление контента после загрузки фона
-            setTimeout(function() {
-                document.querySelector('.header').style.animation = 'fadeIn 1s ease-out forwards';
-            }, 100);
+            // Создаем менеджер GIF
+            const gifManager = new GifManager();
+            
+            // Запускаем систему GIF
+            window.addEventListener('load', function() {
+                setTimeout(() => {
+                    gifManager.start();
+                }, 1000);
+            });
+            
+            // Обработка кликов по карточкам
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+                card.addEventListener('click', function(event) {
+                    if (!event.target.classList.contains('btn')) {
+                        event.stopPropagation();
+                        return;
+                    }
+                });
+                
+                card.addEventListener('touchstart', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                }, { passive: true });
+                
+                card.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                }, { passive: true });
+            });
+            
+            // Обработка изменения размера окна
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    gifManager.restart();
+                }, 250);
+            });
+            
+            // Очистка при разгрузке страницы
+            window.addEventListener('beforeunload', function() {
+                gifManager.stop();
+            });
         });
     </script>
 
