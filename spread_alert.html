@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spread Alert by Artofskill</title>
+    <title>Spread Alert</title>
     <!-- Добавляем Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -57,27 +57,30 @@
             margin-bottom: 5px;
         }
 
-        /* Кнопка домой слева */
+        /* Кнопка домой слева - обновленный дизайн */
         .home-btn {
             position: absolute;
             top: 10px;
             left: 15px;
-            background: #56d364;
-            color: black;
-            border: none;
+            background: #161b22;
+            color: #58a6ff;
+            border: 2px solid #30363d;
             border-radius: 8px;
             padding: 5px 15px;
             font-size: 0.8em;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
             gap: 5px;
         }
 
         .home-btn:hover {
-            background: #7ffe94;
+            background: #21262d;
+            border-color: #58a6ff;
+            color: #79c0ff;
+            box-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
         }
 
         /* Кнопка обновления времени */
@@ -308,12 +311,13 @@
             border-radius: 12px;
             overflow: hidden;
             position: relative;
+            min-height: 400px; /* Минимальная высота для мобильных */
         }
 
         #tradingview-chart {
             width: 100%;
             height: 100%;
-            min-height: 600px;
+            min-height: 400px; /* Увеличена минимальная высота */
         }
 
         /* НОВЫЙ: Контейнер для графика Chart.js */
@@ -323,6 +327,7 @@
             border-radius: 12px;
             overflow: hidden;
             position: relative;
+            min-height: 300px; /* Минимальная высота для мобильных */
         }
 
         #spread-chart {
@@ -638,7 +643,7 @@
             text-align: center;
         }
 
-        /* Мобильная версия */
+        /* Мобильная версия - УЛУЧШЕННАЯ для графиков */
         @media (max-width: 768px) {
             h1 {
                 font-size: 1.5em;
@@ -655,7 +660,7 @@
             
             .home-btn {
                 left: 10px;
-                padding: 4px 8px;
+                padding: 4px 10px;
                 font-size: 0.7em;
             }
             
@@ -700,14 +705,24 @@
                 margin: 0 0 10px 0;
             }
             
+            /* УВЕЛИЧЕНА высота графиков для мобильных */
             .chart-block {
-                height: 400px;
+                height: 500px; /* Увеличено с 400px */
                 margin: 0 0 10px 0;
+                padding: 15px;
             }
             
             .chartjs-block {
-                height: 350px;
+                height: 450px; /* Увеличено с 350px */
                 margin: 0 0 10px 0;
+                padding: 15px;
+            }
+            
+            /* Уменьшаем отступы внутри графиков */
+            .chart-container,
+            .chartjs-container {
+                min-height: 400px; /* Увеличенная минимальная высота */
+                padding: 5px;
             }
             
             .block h2 {
@@ -718,6 +733,7 @@
             .chart-block h2,
             .chartjs-block h2 {
                 font-size: 1.2em;
+                margin-bottom: 15px;
             }
             
             input, button, select {
@@ -774,7 +790,7 @@
             }
             
             #tradingview-chart {
-                min-height: 300px;
+                min-height: 380px; /* Увеличено для мобильных */
             }
             
             .chart-controls {
@@ -784,9 +800,11 @@
             
             .chart-btn {
                 width: 100%;
+                padding: 10px;
+                font-size: 0.9em;
             }
             
-            /* Floating Menu для мобильных */
+            /* Уменьшаем Floating Menu для мобильных */
             .floating-menu {
                 right: 10px;
                 bottom: 10px;
@@ -828,18 +846,78 @@
                 min-height: 400px;
             }
             
+            /* Еще больше увеличиваем графики на маленьких экранах */
             .chart-block {
-                height: 350px;
+                height: 450px;
+                padding: 12px;
             }
             
             .chartjs-block {
-                height: 300px;
+                height: 400px;
+                padding: 12px;
+            }
+            
+            .chart-container,
+            .chartjs-container {
+                min-height: 350px;
+            }
+            
+            #tradingview-chart {
+                min-height: 330px;
+            }
+            
+            .chart-controls {
+                gap: 8px;
+            }
+            
+            .chart-btn {
+                padding: 8px;
+                font-size: 0.85em;
             }
             
             .floating-btn {
                 width: 45px;
                 height: 45px;
                 font-size: 0.75em;
+            }
+            
+            .home-btn {
+                padding: 3px 8px;
+                font-size: 0.65em;
+            }
+        }
+
+        /* Для экстремально маленьких экранов (iPhone SE и подобные) */
+        @media (max-width: 375px) {
+            .chart-block {
+                height: 400px;
+            }
+            
+            .chartjs-block {
+                height: 350px;
+            }
+            
+            .chart-container,
+            .chartjs-container {
+                min-height: 300px;
+            }
+            
+            #tradingview-chart {
+                min-height: 280px;
+            }
+            
+            .chartjs-block h2,
+            .chart-block h2 {
+                font-size: 1.1em;
+            }
+            
+            .chart-controls {
+                gap: 5px;
+            }
+            
+            .chart-btn {
+                padding: 6px 8px;
+                font-size: 0.8em;
             }
         }
 
@@ -896,9 +974,9 @@
         <!-- Блок времени в самом верху -->
         <div class="time-block">
             <button class="home-btn" onclick="goHome()">
-                <span>🏠</span> Домой
+                <span>🏠</span> Главная
             </button>
-            <button class="refresh-btn" onclick="syncNTPTime()">↻ Обновить время</button>
+            <button class="refresh-btn" onclick="syncNTPTime()">↻ Обновить</button>
             <div class="ntp-time" id="ntp-clock">00:00:00</div>
             <div class="funding-timer" id="funding-timer" style="display: none;"></div>
         </div>
@@ -1001,7 +1079,6 @@
                 <button class="chart-btn update" onclick="startChartUpdates()">▶️ Начать запись</button>
                 <button class="chart-btn" onclick="stopChartUpdates()">⏸️ Остановить запись</button>
                 <button class="chart-btn clear" onclick="clearChartData()">🗑️ Очистить график</button>
-                <button class="chart-btn" onclick="exportChartData()">📥 Экспорт данных</button>
             </div>
             <div class="chart-counter" id="chart-counter">
                 Записей: 0/360
@@ -1045,6 +1122,17 @@
 
     <!-- JavaScript -->
     <script>
+        // Динамическое обновление title страницы
+        function updatePageTitle(ticker, spread) {
+            if (ticker && spread !== undefined) {
+                document.title = `${ticker} | ${spread}% | Spread Alert`;
+            } else if (ticker) {
+                document.title = `${ticker} | Spread Alert`;
+            } else {
+                document.title = 'Spread Alert by Artofskill';
+            }
+        }
+
         // NTP-синхронизация времени
         let ntpOffset = 0;
         let fundingTimerActive = false;
@@ -1211,40 +1299,6 @@
             }
         }
 
-        // Экспорт данных графика
-        function exportChartData() {
-            if (chartData.labels.length === 0) {
-                alert('Нет данных для экспорта!');
-                return;
-            }
-            
-            let csvContent = "Время,Спред(%)\n";
-            for (let i = 0; i < chartData.labels.length; i++) {
-                csvContent += `${chartData.labels[i]},${chartData.datasets[0].data[i].toFixed(3)}\n`;
-            }
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `spread_history_${new Date().toISOString().slice(0,10)}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Показываем уведомление
-            const exportBtn = document.querySelector('.chart-btn[onclick="exportChartData()"]');
-            const originalText = exportBtn.textContent;
-            exportBtn.textContent = '✓ Экспортировано!';
-            exportBtn.style.background = '#56d364';
-            
-            setTimeout(() => {
-                exportBtn.textContent = originalText;
-                exportBtn.style.background = '#58a6ff';
-            }, 2000);
-        }
-
         // Запуск автоматического обновления графика
         function startChartUpdates() {
             if (isChartRecording) return;
@@ -1406,7 +1460,7 @@
                     behavior: 'smooth'
                 });
                 
-                // Обновляем индикатор текущей раздела
+                // Обновляем индикатор текущего раздела
                 updateActiveSection(sectionId);
                 
                 // Подсвечиваем активную кнопку
@@ -1446,9 +1500,9 @@
             }, 3000);
         }
 
-        // Функция для перехода на главный сайт
+        // Функция для перехода на главный сайт (в той же вкладке)
         function goHome() {
-            window.open('https://artofskill.github.io', '_blank');
+            window.location.href = 'https://artofskill.github.io/';
         }
 
         // Отслеживание скролла для обновления индикатора
@@ -1960,6 +2014,9 @@
                     updateChart(diff);
                 }
 
+                // Обновляем заголовок страницы
+                updatePageTitle(symbol.replace('USDT', ''), parseFloat(absDiff));
+
                 let extra = '';
                 let className = '';
 
@@ -2085,6 +2142,10 @@
             document.getElementById('stop-btn').style.display = 'inline-block';
             document.getElementById('result').innerHTML = 'Загрузка...';
             document.getElementById('funding-result').innerHTML = 'Загрузка...';
+            
+            // Обновляем заголовок страницы
+            updatePageTitle(ticker);
+            
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             lastPrices = { bybit: null, binance: null };
             
@@ -2102,6 +2163,9 @@
             document.getElementById('result').className = 'content';
             document.getElementById('funding-result').innerHTML = 'Остановлено';
             document.getElementById('profit-result').innerHTML = 'Мониторинг остановлен';
+            
+            // Восстанавливаем стандартный заголовок
+            document.title = 'Spread Alert by Artofskill';
             
             // Останавливаем запись графика
             stopChartUpdates();
