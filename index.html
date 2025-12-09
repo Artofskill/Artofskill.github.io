@@ -22,264 +22,13 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 20px 15px 10px;
+            padding: 20px 15px;
             touch-action: manipulation;
-            position: relative;
-            overflow-x: hidden;
         }
-        
-        /* Контейнер для всех GIF (десктоп) */
-        .gif-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
-            overflow: hidden;
-        }
-        
-        /* Мобильная карусель карточек */
-        .mobile-cards-carousel {
-            display: none;
-            width: 100%;
-            margin: 0 auto 20px;
-            position: relative;
-            z-index: 3;
-            height: 320px; /* Фиксированная высота для карусели */
-        }
-        
-        .carousel-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        
-        .carousel-track {
-            display: flex;
-            height: 100%;
-            transition: transform 0.5s ease-in-out;
-        }
-        
-        .mobile-card {
-            flex: 0 0 100%;
-            min-width: 100%;
-            background: var(--card);
-            border-radius: 24px;
-            padding: 30px 20px;
-            text-align: center;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.6);
-            border: 2px solid var(--border);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            animation: slideUp 0.8s ease-out forwards;
-            opacity: 0;
-            transform: translateY(50px);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        
-        .mobile-card:active,
-        .mobile-card.touch-active {
-            transform: translateY(-5px) scale(1.02);
-            border-color: var(--accent);
-            box-shadow: 0 25px 50px rgba(88,166,255,0.3);
-        }
-        
-        .mobile-card h2 {
-            font-size: 1.8em;
-            margin-bottom: 16px;
-            color: var(--accent);
-            font-weight: 700;
-        }
-        
-        .mobile-card p {
-            font-size: 1.1em;
-            line-height: 1.6;
-            margin-bottom: 25px;
-            opacity: 0.9;
-        }
-        
-        .mobile-btn {
-            display: inline-block;
-            background: linear-gradient(90deg, var(--accent), #79c0ff);
-            color: #000;
-            font-weight: bold;
-            font-size: 1.3em;
-            padding: 14px 40px;
-            border-radius: 50px;
-            text-decoration: none;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-            transition: all 0.3s ease;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            cursor: pointer;
-            max-width: 250px;
-            margin: 0 auto;
-        }
-        
-        .mobile-btn:active {
-            transform: scale(0.95);
-        }
-        
-        /* Навигация карусели */
-        .carousel-nav {
-            position: absolute;
-            bottom: 15px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            z-index: 4;
-        }
-        
-        .carousel-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: rgba(88, 166, 255, 0.3);
-            border: 1px solid rgba(88, 166, 255, 0.5);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .carousel-dot.active {
-            background: var(--accent);
-            transform: scale(1.2);
-        }
-        
-        /* Кнопки навигации */
-        .carousel-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(22, 27, 34, 0.8);
-            border: 2px solid var(--border);
-            color: var(--accent);
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 4;
-            transition: all 0.3s ease;
-        }
-        
-        .carousel-btn:hover {
-            background: var(--card);
-            border-color: var(--accent);
-        }
-        
-        .carousel-btn.prev {
-            left: 10px;
-        }
-        
-        .carousel-btn.next {
-            right: 10px;
-        }
-        
-        .carousel-btn:active {
-            transform: translateY(-50%) scale(0.95);
-        }
-        
-        /* GIF для мобильных (под каруселью) */
-        .mobile-gif-container {
-            display: none;
-            width: 100%;
-            max-width: 300px;
-            margin: 0 auto 10px;
-            position: relative;
-            z-index: 3;
-            text-align: center;
-        }
-        
-        .mobile-gif {
-            width: 100%;
-            border-radius: 15px;
-            border: 2px solid rgba(88, 166, 255, 0.4);
-            box-shadow: 0 0 40px rgba(0, 245, 255, 0.25);
-            background: rgba(0, 0, 0, 0.3);
-            animation: floatMobile 8s ease-in-out infinite;
-        }
-        
-        @keyframes floatMobile {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            25% { transform: translateY(-5px) rotate(1deg); }
-            50% { transform: translateY(0) rotate(0deg); }
-            75% { transform: translateY(5px) rotate(-1deg); }
-        }
-        
-        /* Стиль для отдельных GIF (десктоп) */
-        .floating-gif {
-            position: absolute;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 1.5s ease-in-out, transform 0.5s ease;
-            filter: drop-shadow(0 0 15px rgba(88, 166, 255, 0.4));
-            z-index: 1;
-        }
-        
-        .floating-gif.active {
-            opacity: 0.85;
-        }
-        
-        .floating-gif.fade-out {
-            opacity: 0;
-        }
-        
-        .floating-gif img {
-            width: 160px;
-            height: auto;
-            border-radius: 12px;
-            border: 2px solid rgba(88, 166, 255, 0.4);
-            box-shadow: 0 0 40px rgba(0, 245, 255, 0.25);
-            background: rgba(0, 0, 0, 0.3);
-        }
-        
-        /* Левая сторона */
-        .floating-gif.left-side {
-            left: 40px;
-            transform: translateY(-50%);
-            animation: floatLeft 8s ease-in-out infinite;
-        }
-        
-        /* Правая сторона */
-        .floating-gif.right-side {
-            right: 40px;
-            transform: translateY(-50%);
-            animation: floatRight 8s ease-in-out infinite;
-        }
-        
-        @keyframes floatLeft {
-            0%, 100% { transform: translateY(-50%) rotate(0deg); }
-            25% { transform: translateY(calc(-50% - 10px)) rotate(1deg); }
-            50% { transform: translateY(-50%) rotate(0deg); }
-            75% { transform: translateY(calc(-50% + 10px)) rotate(-1deg); }
-        }
-        
-        @keyframes floatRight {
-            0%, 100% { transform: translateY(-50%) rotate(0deg); }
-            25% { transform: translateY(calc(-50% - 10px)) rotate(-1deg); }
-            50% { transform: translateY(-50%) rotate(0deg); }
-            75% { transform: translateY(calc(-50% + 10px)) rotate(1deg); }
-        }
-
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 50px;
             animation: fadeIn 1s ease-out;
-            position: relative;
-            z-index: 3;
         }
         h1 {
             font-size: 3em;
@@ -295,17 +44,13 @@
             color: var(--accent2);
             font-weight: 600;
         }
-        
-        /* Карточки для десктопа */
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 28px;
             max-width: 1400px;
-            margin: 0 auto 40px;
+            margin: 0 auto 60px;
             flex: 1;
-            position: relative;
-            z-index: 3;
         }
         .card {
             background: var(--card);
@@ -315,7 +60,7 @@
             box-shadow: 0 10px 35px rgba(0,0,0,0.6);
             border: 2px solid var(--border);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: default;
+            cursor: default; /* Изменено с pointer на default */
             position: relative;
             overflow: hidden;
             animation: slideUp 0.8s ease-out forwards;
@@ -365,7 +110,7 @@
             transition: all 0.3s ease;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            cursor: pointer;
+            cursor: pointer; /* Указатель только на кнопке */
         }
         .btn:active {
             transform: scale(0.95);
@@ -373,13 +118,10 @@
 
         .footer {
             text-align: center;
-            padding: 15px 0 10px;
+            padding: 20px 0;
             color: #8b949e;
-            font-size: 0.9em;
+            font-size: 0.95em;
             border-top: 1px solid var(--border);
-            position: relative;
-            z-index: 3;
-            margin-top: auto;
         }
 
         /* Анимации */
@@ -388,165 +130,35 @@
 
         /* Мобильные улучшения */
         @media (max-width: 768px) {
-            h1 { font-size: 2.2em; }
-            .subtitle { font-size: 1.1em; }
-            
-            /* Показываем мобильную карусель карточек */
-            .mobile-cards-carousel {
-                display: block;
-            }
-            
-            /* Показываем GIF под каруселью */
-            .mobile-gif-container {
-                display: block;
-            }
-            
-            /* Скрываем десктопные карточки */
-            .cards {
-                display: none;
-            }
-            
-            /* Скрываем фоновые GIF на мобильных */
-            .gif-background {
-                display: none;
-            }
-            
-            /* Уменьшаем отступы */
-            body {
-                padding: 15px 10px 5px;
-            }
-            
-            .header {
-                margin-bottom: 20px;
-            }
-            
-            .mobile-cards-carousel {
-                height: 300px;
-                margin-bottom: 15px;
-            }
-            
-            .mobile-card {
-                padding: 25px 15px;
-            }
-            
-            .mobile-card h2 {
-                font-size: 1.6em;
-            }
-            
-            .mobile-card p {
-                font-size: 1em;
-                margin-bottom: 20px;
-            }
-            
-            .mobile-btn {
-                font-size: 1.2em;
-                padding: 12px 35px;
-            }
-            
-            .mobile-gif-container {
-                max-width: 250px;
-                margin-bottom: 15px;
-            }
-            
-            .carousel-btn {
-                display: none; /* Скрываем кнопки на маленьких экранах */
-            }
-            
-            .carousel-nav {
-                bottom: 10px;
-            }
+            h1 { font-size: 2.4em; }
+            .subtitle { font-size: 1.2em; }
+            .cards { gap: 20px; grid-template-columns: 1fr; }
+            .card { padding: 30px 20px; }
+            .card h2 { font-size: 1.7em; }
+            .card p { font-size: 1.1em; }
+            .btn { font-size: 1.3em; padding: 14px 40px; }
         }
-        
         @media (max-width: 480px) {
-            .mobile-cards-carousel {
-                height: 280px;
-            }
-            
-            .mobile-card h2 {
-                font-size: 1.5em;
-            }
-            
-            .mobile-btn {
-                padding: 10px 30px;
-                font-size: 1.1em;
-            }
-            
-            .mobile-gif-container {
-                max-width: 220px;
-            }
-        }
-        
-        @media (max-width: 1200px) and (min-width: 769px) {
-            /* На планшетах уменьшаем GIF и отступы */
-            .floating-gif img {
-                width: 140px;
-            }
-            
-            .floating-gif.left-side {
-                left: 30px;
-            }
-            
-            .floating-gif.right-side {
-                right: 30px;
-            }
-        }
-        
-        /* Для очень широких экранов */
-        @media (min-width: 1600px) {
-            .floating-gif img {
-                width: 180px;
-            }
-            
-            .floating-gif.left-side {
-                left: 50px;
-            }
-            
-            .floating-gif.right-side {
-                right: 50px;
-            }
+            h1 { font-size: 2em; }
+            .header { margin-bottom: 40px; }
+            .card h2 { font-size: 1.5em; }
+            .btn { font-size: 1.2em; padding: 14px 35px; }
         }
     </style>
 </head>
 <body>
-
-    <!-- Контейнер для фоновых GIF (десктоп) -->
-    <div class="gif-background" id="gifBackground">
-        <!-- GIF будут добавляться через JS -->
-    </div>
 
     <div class="header">
         <h1>Artofskill</h1>
         <div class="subtitle">Funding + Spread Arbitrage Terminal</div>
     </div>
 
-    <!-- Карусель карточек для мобильных -->
-    <div class="mobile-cards-carousel" id="mobileCarousel">
-        <div class="carousel-container">
-            <div class="carousel-track" id="carouselTrack">
-                <!-- Карточки будут добавляться через JS -->
-            </div>
-            
-            <!-- Кнопки навигации -->
-            <button class="carousel-btn prev" onclick="mobileCarousel.prevSlide()">‹</button>
-            <button class="carousel-btn next" onclick="mobileCarousel.nextSlide()">›</button>
-            
-            <!-- Точки навигации -->
-            <div class="carousel-nav" id="carouselNav">
-                <!-- Точки будут добавляться через JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- GIF для мобильных (под каруселью) -->
-    <div class="mobile-gif-container" id="mobileGifContainer">
-        <!-- GIF будет добавляться через JS -->
-    </div>
-
-    <!-- Карточки для десктопа -->
     <div class="cards">
+
         <div class="card">
             <h2>Dashboard</h2>
             <p>Терминал возможностей<br></p>
+            <!-- Убрал onclick из карточки, добавил на кнопку -->
             <div class="btn" onclick="goTo('dashboard.html')">Dashboard</div>
         </div>
 
@@ -561,6 +173,7 @@
             <p>Трекер депозита<br></p>
             <div class="btn" onclick="goTo('deposit.html')">Deposit</div>
         </div>
+
     </div>
 
     <div class="footer">
@@ -569,8 +182,9 @@
     </div>
 
     <script>
-        // 100% надёжный переход
+        // 100% надёжный переход — работает даже на iOS Safari и Android
         function goTo(page) {
+            // Пробуем несколько способов (на всякий случай)
             try {
                 window.location.href = page;
             } catch(e) {
@@ -578,562 +192,31 @@
             }
         }
 
-        // Защита от случайного выделения текста
+        // Защита от случайного выделения текста при двойном тапе на мобилках
         document.addEventListener('touchstart', function(){}, { passive: true });
         
-        // Все GIF изображения
-        const gifUrls = [
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/homer-crypto_hfjsrb.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765202331/foke-fokearmy_pqlxbs.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765202330/stock-market-pump-and-dump_rpv10j.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765202329/buy-degen_udyx3u.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765202328/btc-bitcoin_dmmf87.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765202328/trading-stock-trading_bjakgj.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203701/animation.gif_3_xpsodv.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203703/trump-dance-trump-2024_c0rjwf.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203704/leo-angry-wolf_dkga41.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203705/the-wolf-of-wall-street-matthew-mcconaughey_cvbhgo.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203707/elon-musk-smoke_ld5y5b.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203707/wolf-of-wall-street_ticjww.gif',
-            'https://res.cloudinary.com/dknzxyzgc/image/upload/v1765203708/elon-musk-trump_s-inauguration_aoz8kd.gif'
-        ];
-        
-        // Данные карточек
-        const cardsData = [
-            {
-                title: "Dashboard",
-                description: "Терминал возможностей",
-                buttonText: "Dashboard",
-                page: "dashboard.html"
-            },
-            {
-                title: "Spread Calculator",
-                description: "Мониторинг позиции и спреда",
-                buttonText: "Calculator",
-                page: "spread_alert.html"
-            },
-            {
-                title: "Deposit",
-                description: "Трекер депозита",
-                buttonText: "Deposit",
-                page: "deposit.html"
-            }
-        ];
-        
-        // Система управления GIF для десктопа
-        class DesktopGifManager {
-            constructor() {
-                this.container = document.getElementById('gifBackground');
-                this.leftGifs = [];
-                this.rightGifs = [];
-                this.maxPerSide = 3;
-                this.gifDuration = 18000;
-                this.spawnInterval = 4000;
-                this.spawnTimer = null;
-                this.isEnabled = window.innerWidth > 768;
-                this.sideMargin = 40;
-                this.minTopMargin = 100;
-                this.minBottomMargin = 100;
-            }
-            
-            getPositionForSide(side) {
-                const sideGifs = side === 'left' ? this.leftGifs : this.rightGifs;
-                
-                if (sideGifs.length >= this.maxPerSide) {
-                    return null;
-                }
-                
-                const availableHeight = window.innerHeight - this.minTopMargin - this.minBottomMargin;
-                
-                if (sideGifs.length === 0) {
-                    return {
-                        x: side === 'left' ? this.sideMargin : window.innerWidth - this.sideMargin,
-                        y: this.minTopMargin + availableHeight / 2
-                    };
-                }
-                
-                const positions = [];
-                const segmentCount = sideGifs.length + 2;
-                const segmentHeight = availableHeight / segmentCount;
-                
-                for (let i = 1; i <= sideGifs.length + 1; i++) {
-                    positions.push(this.minTopMargin + segmentHeight * i);
-                }
-                
-                const occupiedPositions = sideGifs.map(gif => parseFloat(gif.style.top));
-                
-                let bestPosition = null;
-                let minDistance = Infinity;
-                
-                for (const pos of positions) {
-                    let tooClose = false;
-                    for (const occupied of occupiedPositions) {
-                        if (Math.abs(pos - occupied) < segmentHeight * 0.6) {
-                            tooClose = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!tooClose) {
-                        let totalDistance = 0;
-                        for (const occupied of occupiedPositions) {
-                            totalDistance += Math.abs(pos - occupied);
-                        }
-                        const avgDistance = totalDistance / occupiedPositions.length;
-                        
-                        if (avgDistance < minDistance) {
-                            minDistance = avgDistance;
-                            bestPosition = pos;
-                        }
-                    }
-                }
-                
-                if (bestPosition === null) {
-                    bestPosition = this.minTopMargin + Math.random() * availableHeight;
-                }
-                
-                return {
-                    x: side === 'left' ? this.sideMargin : window.innerWidth - this.sideMargin,
-                    y: bestPosition
-                };
-            }
-            
-            getRandomSize() {
-                const sizes = [140, 150, 160, 170];
-                return sizes[Math.floor(Math.random() * sizes.length)];
-            }
-            
-            chooseSide() {
-                if (this.leftGifs.length >= this.maxPerSide && this.rightGifs.length >= this.maxPerSide) {
-                    return null;
-                }
-                
-                if (this.leftGifs.length >= this.maxPerSide) {
-                    return 'right';
-                }
-                if (this.rightGifs.length >= this.maxPerSide) {
-                    return 'left';
-                }
-                
-                if (this.leftGifs.length < this.rightGifs.length) {
-                    return 'left';
-                } else if (this.rightGifs.length < this.leftGifs.length) {
-                    return 'right';
-                }
-                
-                return Math.random() > 0.5 ? 'left' : 'right';
-            }
-            
-            createGif() {
-                if (!this.isEnabled) return null;
-                
-                const side = this.chooseSide();
-                if (!side) return null;
-                
-                const position = this.getPositionForSide(side);
-                if (!position) return null;
-                
-                const gifUrl = gifUrls[Math.floor(Math.random() * gifUrls.length)];
-                const size = this.getRandomSize();
-                
-                const gifElement = document.createElement('div');
-                gifElement.className = `floating-gif ${side}-side`;
-                gifElement.style.top = `${position.y}px`;
-                gifElement.dataset.side = side;
-                gifElement.dataset.id = Date.now() + Math.random();
-                
-                const img = document.createElement('img');
-                img.src = gifUrl;
-                img.alt = "Crypto Trading GIF";
-                img.style.width = `${size}px`;
-                img.loading = "lazy";
-                
-                gifElement.appendChild(img);
-                this.container.appendChild(gifElement);
-                
-                if (side === 'left') {
-                    this.leftGifs.push(gifElement);
-                } else {
-                    this.rightGifs.push(gifElement);
-                }
-                
-                setTimeout(() => {
-                    gifElement.classList.add('active');
-                }, 300);
-                
-                const removeTimeout = setTimeout(() => {
-                    this.removeGif(gifElement);
-                }, this.gifDuration);
-                
-                gifElement.removeTimeout = removeTimeout;
-                
-                return gifElement;
-            }
-            
-            removeGif(gifElement) {
-                const side = gifElement.dataset.side;
-                const collection = side === 'left' ? this.leftGifs : this.rightGifs;
-                
-                if (gifElement.removeTimeout) {
-                    clearTimeout(gifElement.removeTimeout);
-                }
-                
-                gifElement.classList.remove('active');
-                gifElement.classList.add('fade-out');
-                
-                const index = collection.indexOf(gifElement);
-                if (index > -1) {
-                    collection.splice(index, 1);
-                }
-                
-                setTimeout(() => {
-                    if (gifElement.parentNode) {
-                        gifElement.parentNode.removeChild(gifElement);
-                    }
-                }, 1500);
-            }
-            
-            start() {
-                if (!this.isEnabled) return;
-                
-                setTimeout(() => this.createGif(), 500);
-                setTimeout(() => this.createGif(), 1500);
-                setTimeout(() => this.createGif(), 2500);
-                
-                this.spawnTimer = setInterval(() => {
-                    this.createGif();
-                }, this.spawnInterval);
-            }
-            
-            stop() {
-                if (this.spawnTimer) {
-                    clearInterval(this.spawnTimer);
-                    this.spawnTimer = null;
-                }
-                
-                [...this.leftGifs, ...this.rightGifs].forEach(gif => {
-                    this.removeGif(gif);
-                });
-                
-                this.leftGifs = [];
-                this.rightGifs = [];
-            }
-            
-            restart() {
-                const wasEnabled = this.isEnabled;
-                this.isEnabled = window.innerWidth > 768;
-                
-                if (wasEnabled !== this.isEnabled) {
-                    this.stop();
-                    if (this.isEnabled) {
-                        setTimeout(() => this.start(), 500);
-                    }
-                }
-            }
-        }
-        
-        // Система карусели для мобильных
-        class MobileCarouselManager {
-            constructor() {
-                this.track = document.getElementById('carouselTrack');
-                this.nav = document.getElementById('carouselNav');
-                this.gifContainer = document.getElementById('mobileGifContainer');
-                this.isEnabled = window.innerWidth <= 768;
-                this.currentIndex = 0;
-                this.totalCards = cardsData.length;
-                this.autoPlayInterval = null;
-                this.autoPlayDuration = 5000; // 5 секунд
-                this.touchStartX = 0;
-                this.touchEndX = 0;
-            }
-            
-            init() {
-                if (!this.isEnabled) return;
-                
-                this.createCards();
-                this.createNavDots();
-                this.showGif();
-                this.startAutoPlay();
-                this.addTouchEvents();
-                
-                // Запускаем анимации карточек
-                setTimeout(() => {
-                    const cards = document.querySelectorAll('.mobile-card');
-                    cards.forEach(card => {
-                        card.style.animation = 'slideUp 0.8s ease-out forwards';
-                    });
-                }, 100);
-            }
-            
-            createCards() {
-                this.track.innerHTML = '';
-                
-                cardsData.forEach((cardData, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'mobile-card';
-                    card.style.animationDelay = `${0.1 + index * 0.2}s`;
-                    card.dataset.index = index;
-                    
-                    card.innerHTML = `
-                        <h2>${cardData.title}</h2>
-                        <p>${cardData.description}<br></p>
-                        <div class="mobile-btn">${cardData.buttonText}</div>
-                    `;
-                    
-                    // Добавляем обработчик для кнопки
-                    const button = card.querySelector('.mobile-btn');
-                    button.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        goTo(cardData.page);
-                    });
-                    
-                    // Добавляем эффекты прикосновения
-                    this.addCardTouchEffects(card);
-                    
-                    this.track.appendChild(card);
-                });
-            }
-            
-            addCardTouchEffects(card) {
-                let touchTimer = null;
-                
-                card.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    card.classList.add('touch-active');
-                    
-                    touchTimer = setTimeout(() => {
-                        card.style.transform = 'translateY(-5px) scale(1.02)';
-                    }, 500);
-                }, { passive: false });
-                
-                card.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    card.classList.remove('touch-active');
-                    
-                    if (touchTimer) {
-                        clearTimeout(touchTimer);
-                        touchTimer = null;
-                    }
-                    
-                    setTimeout(() => {
-                        card.style.transform = '';
-                    }, 300);
-                }, { passive: false });
-                
-                card.addEventListener('touchcancel', (e) => {
-                    card.classList.remove('touch-active');
-                    
-                    if (touchTimer) {
-                        clearTimeout(touchTimer);
-                        touchTimer = null;
-                    }
-                    
-                    card.style.transform = '';
-                }, { passive: true });
-                
-                card.style.webkitTapHighlightColor = 'rgba(88, 166, 255, 0.3)';
-            }
-            
-            createNavDots() {
-                this.nav.innerHTML = '';
-                
-                for (let i = 0; i < this.totalCards; i++) {
-                    const dot = document.createElement('div');
-                    dot.className = 'carousel-dot';
-                    if (i === 0) dot.classList.add('active');
-                    dot.dataset.index = i;
-                    dot.addEventListener('click', () => this.goToSlide(i));
-                    this.nav.appendChild(dot);
-                }
-            }
-            
-            goToSlide(index) {
-                if (index < 0) index = this.totalCards - 1;
-                if (index >= this.totalCards) index = 0;
-                
-                this.currentIndex = index;
-                
-                // Анимация перехода
-                this.track.style.transform = `translateX(-${index * 100}%)`;
-                
-                // Обновляем активную точку
-                const dots = this.nav.querySelectorAll('.carousel-dot');
-                dots.forEach(dot => dot.classList.remove('active'));
-                dots[index].classList.add('active');
-                
-                // Сбрасываем автосмену
-                this.resetAutoPlay();
-            }
-            
-            nextSlide() {
-                this.goToSlide(this.currentIndex + 1);
-            }
-            
-            prevSlide() {
-                this.goToSlide(this.currentIndex - 1);
-            }
-            
-            addTouchEvents() {
-                this.track.addEventListener('touchstart', (e) => {
-                    this.touchStartX = e.changedTouches[0].screenX;
-                }, { passive: true });
-                
-                this.track.addEventListener('touchend', (e) => {
-                    this.touchEndX = e.changedTouches[0].screenX;
-                    const swipeThreshold = 50;
-                    
-                    if (this.touchStartX - this.touchEndX > swipeThreshold) {
-                        // Свайп влево - следующий слайд
-                        this.nextSlide();
-                    } else if (this.touchEndX - this.touchStartX > swipeThreshold) {
-                        // Свайп вправо - предыдущий слайд
-                        this.prevSlide();
-                    }
-                }, { passive: true });
-            }
-            
-            startAutoPlay() {
-                if (this.autoPlayInterval) {
-                    clearInterval(this.autoPlayInterval);
-                }
-                
-                this.autoPlayInterval = setInterval(() => {
-                    this.nextSlide();
-                }, this.autoPlayDuration);
-            }
-            
-            resetAutoPlay() {
-                if (this.autoPlayInterval) {
-                    clearInterval(this.autoPlayInterval);
-                    this.startAutoPlay();
-                }
-            }
-            
-            showGif() {
-                if (!this.gifContainer) return;
-                
-                this.gifContainer.innerHTML = '';
-                
-                // Выбираем случайный GIF
-                const gifUrl = gifUrls[Math.floor(Math.random() * gifUrls.length)];
-                
-                const img = document.createElement('img');
-                img.src = gifUrl;
-                img.alt = "Crypto Trading GIF";
-                img.className = 'mobile-gif';
-                img.loading = "lazy";
-                
-                this.gifContainer.appendChild(img);
-                
-                // Меняем GIF каждые 8 секунд
-                setInterval(() => {
-                    this.changeGif();
-                }, 8000);
-            }
-            
-            changeGif() {
-                if (!this.gifContainer || this.gifContainer.children.length === 0) return;
-                
-                const currentImg = this.gifContainer.querySelector('img');
-                if (!currentImg) return;
-                
-                // Плавная смена
-                currentImg.style.opacity = '0.5';
-                currentImg.style.transition = 'opacity 0.5s ease';
-                
-                setTimeout(() => {
-                    let newGifUrl;
-                    do {
-                        newGifUrl = gifUrls[Math.floor(Math.random() * gifUrls.length)];
-                    } while (newGifUrl === currentImg.src && gifUrls.length > 1);
-                    
-                    currentImg.src = newGifUrl;
-                    
-                    setTimeout(() => {
-                        currentImg.style.opacity = '1';
-                    }, 50);
-                }, 500);
-            }
-            
-            stop() {
-                if (this.autoPlayInterval) {
-                    clearInterval(this.autoPlayInterval);
-                    this.autoPlayInterval = null;
-                }
-            }
-            
-            restart() {
-                const wasEnabled = this.isEnabled;
-                this.isEnabled = window.innerWidth <= 768;
-                
-                if (wasEnabled !== this.isEnabled) {
-                    this.stop();
-                    if (this.isEnabled) {
-                        this.init();
-                    } else {
-                        this.track.innerHTML = '';
-                        this.nav.innerHTML = '';
-                        if (this.gifContainer) {
-                            this.gifContainer.innerHTML = '';
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Глобальный объект для карусели (для кнопок)
-        let mobileCarousel;
-        
-        // Инициализация
+        // Предотвращаем переход при клике на карточку (только для мобильных)
         document.addEventListener('DOMContentLoaded', function() {
-            // Создаем менеджеры
-            const desktopGifManager = new DesktopGifManager();
-            mobileCarousel = new MobileCarouselManager();
+            const cards = document.querySelectorAll('.card');
             
-            // Запускаем соответствующие системы
-            window.addEventListener('load', function() {
-                setTimeout(() => {
-                    if (window.innerWidth > 768) {
-                        desktopGifManager.start();
-                    } else {
-                        mobileCarousel.init();
-                    }
-                }, 1000);
-            });
-            
-            // Обработка кликов по карточкам (десктоп)
-            const desktopCards = document.querySelectorAll('.card');
-            
-            desktopCards.forEach(card => {
+            cards.forEach(card => {
+                // Обработчик для предотвращения перехода при клике на карточку
                 card.addEventListener('click', function(event) {
+                    // Если клик был не по кнопке, ничего не делаем
                     if (!event.target.classList.contains('btn')) {
                         event.stopPropagation();
                         return;
                     }
                 });
-            });
-            
-            // Обработка изменения размера окна
-            let resizeTimeout;
-            window.addEventListener('resize', function() {
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(() => {
-                    desktopGifManager.restart();
-                    mobileCarousel.restart();
-                    
-                    // Перезапускаем соответствующую систему
-                    if (window.innerWidth > 768) {
-                        desktopGifManager.start();
-                    } else {
-                        mobileCarousel.init();
-                    }
-                }, 250);
-            });
-            
-            // Очистка при разгрузке страницы
-            window.addEventListener('beforeunload', function() {
-                desktopGifManager.stop();
-                mobileCarousel.stop();
+                
+                // Для мобильных: добавляем активный класс при тапе
+                card.addEventListener('touchstart', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                }, { passive: true });
+                
+                card.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                }, { passive: true });
             });
         });
     </script>
