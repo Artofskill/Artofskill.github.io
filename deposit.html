@@ -462,6 +462,16 @@
 </head>
 <body>
 
+<script>
+// Проверка авторизации при загрузке
+if (localStorage.getItem('isAuthenticated') !== 'true') {
+    window.location.href = 'index.html';
+}
+</script>
+
+<!-- Кнопка выхода -->
+<button onclick="logout()" style="position:fixed; top:20px; right:20px; padding:10px 20px; border-radius:12px; border:none; background:linear-gradient(90deg, #ff7b72, #ff9999); color:white; font-weight:bold; cursor:pointer; z-index:10000;">Выход</button>
+
 <div id="loader">
     <div class="loader-spinner"></div>
     <div class="loader-text" id="loaderText">Запрашиваю данные...</div>
@@ -510,6 +520,18 @@
 </div>
 
 <script>
+    // Функция выхода
+    function logout() {
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('username');
+        window.location.href = 'index.html';
+    }
+
+    // Проверка авторизации при загрузке
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+        window.location.href = 'index.html';
+    }
+
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTGolX0bo1z7rTJGbSN7TjPpWtUtS-lB35107OB71d5nULSaNbo-9imyWutPdbUuhxpxtRhthfHB1Q9/pub?gid=266237619&single=true&output=csv';
     const proxy = 'https://corsproxy.io/?';
     const url = proxy + encodeURIComponent(csvUrl);

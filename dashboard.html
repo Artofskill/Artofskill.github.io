@@ -352,6 +352,16 @@
 </style>
 </head>
 <body>
+    <script>
+// Проверка авторизации при загрузке
+if (localStorage.getItem('isAuthenticated') !== 'true') {
+    window.location.href = 'index.html';
+}
+</script>
+
+<!-- Кнопка выхода -->
+<button onclick="logout()" style="position:fixed; top:20px; right:20px; padding:10px 20px; border-radius:12px; border:none; background:linear-gradient(90deg, #ff7b72, #ff9999); color:white; font-weight:bold; cursor:pointer; z-index:10000;">Выход</button>
+
     <h1>TERMINAL │ Bybit ↔ Binance</h1>
     <div class="update" id="last-update">Обновлено: —</div>
 
@@ -428,6 +438,18 @@
     <div class="copied" id="copied">Скопировано!</div>
 
 <script>
+// Функция выхода
+function logout() {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('username');
+    window.location.href = 'index.html';
+}
+
+// Проверка авторизации при загрузке
+if (localStorage.getItem('isAuthenticated') !== 'true') {
+    window.location.href = 'index.html';
+}
+
 // ЗВУК — работает 100%
 let audioContext = null;
 function playAlert() {

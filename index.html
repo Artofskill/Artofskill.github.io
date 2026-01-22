@@ -148,6 +148,16 @@
 </head>
 <body>
 
+    <div id="login-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9999; display:flex; justify-content:center; align-items:center;">
+  <div style="background:var(--card); padding:40px; border-radius:20px; border:2px solid var(--border); max-width:400px; width:90%; text-align:center;">
+    <h2 style="color:var(--accent); margin-bottom:30px;">Вход в систему</h2>
+    <input type="text" id="login-username" placeholder="Логин" style="width:100%; padding:15px; margin-bottom:20px; border-radius:12px; border:2px solid var(--border); background:var(--bg); color:var(--text); font-size:1.1em;">
+    <input type="password" id="login-password" placeholder="Пароль" style="width:100%; padding:15px; margin-bottom:20px; border-radius:12px; border:2px solid var(--border); background:var(--bg); color:var(--text); font-size:1.1em;">
+    <button onclick="login()" style="width:100%; padding:16px; border-radius:12px; border:none; background:linear-gradient(90deg, var(--accent), #79c0ff); color:#000; font-weight:bold; font-size:1.2em; cursor:pointer;">Войти</button>
+    <div id="login-error" style="color:#ff7b72; margin-top:15px; display:none;">Неверный логин или пароль</div>
+  </div>
+</div>
+
     <div class="header">
         <h1>Artofskill</h1>
         <div class="subtitle">Funding + Spread Arbitrage Terminal</div>
@@ -182,6 +192,38 @@
     </div>
 
     <script>
+        // Проверка авторизации при загрузке
+function checkAuth() {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    const loginOverlay = document.getElementById('login-overlay');
+    
+    if (!isAuthenticated) {
+        loginOverlay.style.display = 'flex';
+    } else {
+        loginOverlay.style.display = 'none';
+    }
+}
+
+// Функция входа
+function login() {
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+    const errorElement = document.getElementById('login-error');
+    
+    // Проверка логина и пароля
+    if (username === 'Admin' && password === 'Des123123@') {
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('username', username);
+        errorElement.style.display = 'none';
+        checkAuth(); // Скрываем окно входа
+    } else {
+        errorElement.style.display = 'block';
+    }
+}
+
+// Проверить авторизацию при загрузке
+document.addEventListener('DOMContentLoaded', checkAuth);
+
         // 100% надёжный переход — работает даже на iOS Safari и Android
         function goTo(page) {
             // Пробуем несколько способов (на всякий случай)
