@@ -2315,7 +2315,7 @@
             }
 
             // Создаем URL с параметрами позиции
-            const baseUrl = 'https://artofskill.github.io/spread_alert.html';
+            const baseUrl = window.location.origin + window.location.pathname;
             const params = new URLSearchParams({
                 longExchange: longExchange,
                 shortExchange: shortExchange,
@@ -2348,60 +2348,124 @@
 
             const shareUrl = `${baseUrl}?${params.toString()}`;
             
+            // Очищаем содержимое модального окна полностью
+            const qrModalContent = document.getElementById('qr-modal-content');
+            qrModalContent.innerHTML = '';
+            
+            // Создаем заголовок
+            const title = document.createElement('h3');
+            title.textContent = '📱 QR код позиции';
+            title.style.cssText = 'color:var(--accent); margin-bottom:20px; font-size:1.5em;';
+            qrModalContent.appendChild(title);
+            
+            // Создаем контейнер для QR кода
+            const qrContainer = document.createElement('div');
+            qrContainer.id = 'qr-code-container';
+            qrContainer.style.cssText = 'margin:20px 0; display:flex; justify-content:center;';
+            qrModalContent.appendChild(qrContainer);
+            
             // Генерируем QR код
-            const qrContainer = document.getElementById('qr-code');
-            qrContainer.innerHTML = ''; // Очищаем предыдущий QR
+            try {
+                if (typeof QRCode === 'undefined') {
+                    throw new Error('QRCode библиотека не загружена');
+                }
+                
+                new QRCode(qrContainer, {
+                    text: shareUrl,
+                    width: 256,
+                    height: 256,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch (error) {
+                console.error('Ошибка генерации QR:', error);
+                qrContainer.innerHTML = `
+                    <div style="color:#ff7b72; padding:20px; text-align:center;">
+                        Ошибка генерации QR: ${error.message}<br>
+                        <div style="margin-top:10px; font-size:0.9em; color:#8b949e;">
+                            URL для копирования:<br>
+                            <code style="word-break:break-all; display:inline-block; margin-top:5px;">${shareUrl}</code>
+                        </div>
+                    </div>
+                `;
+            }
             
-            // Используем библиотеку QRCode
-            new QRCode(qrContainer, {
-                text: shareUrl,
-                width: 256,
-                height: 256,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-
-            // Показываем модальное окно
-            document.getElementById('qr-modal').style.display = 'flex';
+            // Создаем блок информации
+            const info = document.createElement('div');
+            info.style.cssText = 'color:var(--accent2); font-size:0.9em; margin-bottom:20px; padding:10px; background:rgba(255,255,255,0.05); border-radius:10px;';
+            info.innerHTML = `Содержит:<br>
+                • Позицию (Long/Short цены)<br>
+                • Размер позиции<br>
+                • Текущий тикер и алерты<br>
+                ${monitorActive && currentBybitPrice && currentBinancePrice ? '• Текущие рыночные цены' : ''}`;
+            qrModalContent.appendChild(info);
             
-            // Также показываем URL для копирования
+            // Создаем блок для URL
             const urlDisplay = document.createElement('div');
-            urlDisplay.style.marginTop = '15px';
-            urlDisplay.style.fontSize = '0.8em';
-            urlDisplay.style.color = '#8b949e';
-            urlDisplay.style.wordBreak = 'break-all';
-            urlDisplay.innerHTML = `<strong>URL:</strong><br>${shareUrl}`;
-            qrContainer.parentNode.insertBefore(urlDisplay, qrContainer.nextSibling);
+            urlDisplay.style.cssText = 'margin-top:15px; font-size:0.8em; color:#8b949e; word-break:break-all; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;';
+            urlDisplay.innerHTML = `<strong>URL:</strong><br><code>${shareUrl}</code>`;
+            qrModalContent.appendChild(urlDisplay);
             
-            // Добавляем кнопку копирования
+            // Создаем кнопку копирования
             const copyBtn = document.createElement('button');
             copyBtn.innerHTML = '📋 Скопировать ссылку';
             copyBtn.style.cssText = `
-                background: var(--bg);
-                color: var(--text);
-                border: 1px solid var(--border);
-                padding: 8px 15px;
+                background: linear-gradient(90deg, #7ffe94, #a8ffbb);
+                color: #000;
+                border: none;
+                padding: 10px 20px;
                 border-radius: 8px;
-                margin-top: 10px;
+                margin-top: 15px;
                 cursor: pointer;
                 font-size: 0.9em;
+                font-weight: bold;
                 transition: all 0.3s;
+                width: 100%;
             `;
             copyBtn.onclick = function() {
                 navigator.clipboard.writeText(shareUrl).then(() => {
-                    copyBtn.innerHTML = '✓ Скопировано!';
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = '✓ Скопировано!';
                     copyBtn.style.background = 'linear-gradient(90deg, #56d364, #7ffe94)';
-                    copyBtn.style.color = '#000';
                     
                     setTimeout(() => {
-                        copyBtn.innerHTML = '📋 Скопировать ссылку';
-                        copyBtn.style.background = 'var(--bg)';
-                        copyBtn.style.color = 'var(--text)';
+                        copyBtn.textContent = originalText;
+                        copyBtn.style.background = 'linear-gradient(90deg, #7ffe94, #a8ffbb)';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Ошибка копирования:', err);
+                    copyBtn.textContent = '❌ Ошибка';
+                    copyBtn.style.background = 'linear-gradient(90deg, #ff7b72, #ff9999)';
+                    
+                    setTimeout(() => {
+                        copyBtn.textContent = '📋 Скопировать ссылку';
+                        copyBtn.style.background = 'linear-gradient(90deg, #7ffe94, #a8ffbb)';
                     }, 2000);
                 });
             };
-            urlDisplay.parentNode.insertBefore(copyBtn, urlDisplay.nextSibling);
+            qrModalContent.appendChild(copyBtn);
+            
+            // Создаем кнопку закрытия
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = 'Закрыть';
+            closeBtn.style.cssText = `
+                background: linear-gradient(90deg, var(--accent), #79c0ff);
+                color: #000;
+                border: none;
+                padding: 12px 40px;
+                border-radius: 12px;
+                font-weight: bold;
+                cursor: pointer;
+                font-size: 1.1em;
+                margin-top: 20px;
+                width: 100%;
+            `;
+            closeBtn.onclick = closeQR;
+            qrModalContent.appendChild(closeBtn);
+            
+            // Показываем модальное окно
+            document.getElementById('qr-modal').style.display = 'flex';
         }
 
         // Функция закрытия QR модального окна
@@ -2412,26 +2476,34 @@
         // Функция загрузки позиции из URL параметров
         function loadPositionFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
+            console.log('URL параметры:', Object.fromEntries(urlParams.entries()));
             
             // Загружаем данные из My Position
+            let loadedPosition = false;
+            
             if (urlParams.has('longExchange')) {
                 document.getElementById('long-exchange').value = urlParams.get('longExchange');
+                loadedPosition = true;
             }
             
             if (urlParams.has('shortExchange')) {
                 document.getElementById('short-exchange').value = urlParams.get('shortExchange');
+                loadedPosition = true;
             }
             
             if (urlParams.has('longPrice')) {
                 document.getElementById('long-price').value = urlParams.get('longPrice');
+                loadedPosition = true;
             }
             
             if (urlParams.has('shortPrice')) {
                 document.getElementById('short-price').value = urlParams.get('shortPrice');
+                loadedPosition = true;
             }
             
             if (urlParams.has('positionSize')) {
                 document.getElementById('position-size').value = urlParams.get('positionSize');
+                loadedPosition = true;
             }
             
             // Загружаем данные из LIVE Spread
@@ -2447,28 +2519,6 @@
                 document.getElementById('max-alert').value = urlParams.get('maxAlert');
             }
             
-            // Если есть данные о мониторинге, показываем их
-            if (urlParams.has('currentSpread')) {
-                const spread = parseFloat(urlParams.get('currentSpread'));
-                const color = spread >= 0 ? '#56d364' : '#ff7b72';
-                const sign = spread > 0 ? '' : '-';
-                const absSpread = Math.abs(spread).toFixed(3);
-                
-                const resultDiv = document.getElementById('result');
-                if (resultDiv) {
-                    resultDiv.innerHTML = `
-                        <div style="text-align: center;">
-                            <div style="font-size: 1.2em; color: var(--accent); margin-bottom: 10px;">
-                                Загружены данные из QR
-                            </div>
-                            <div>Текущий спред: <strong style="color:${color}">${sign}${absSpread}%</strong></div>
-                            ${urlParams.has('currentBybit') ? `<div>Bybit: ${parseFloat(urlParams.get('currentBybit')).toFixed(6)}</div>` : ''}
-                            ${urlParams.has('currentBinance') ? `<div>Binance: ${parseFloat(urlParams.get('currentBinance')).toFixed(6)}</div>` : ''}
-                        </div>
-                    `;
-                }
-            }
-            
             // Если есть параметры цены, автоматически рассчитываем спред
             if (urlParams.has('longPrice') && urlParams.has('shortPrice')) {
                 setTimeout(() => {
@@ -2476,27 +2526,55 @@
                     updatePositionUsdt();
                     
                     // Показываем уведомление о загрузке
-                    showNotification('Позиция загружена из QR кода!');
+                    if (loadedPosition) {
+                        showNotification('Позиция загружена из QR кода!');
+                    }
                 }, 500);
             }
         }
 
         // Функция показа уведомления
-        function showNotification(message) {
+        function showNotification(message, type = 'info') {
+            // Удаляем предыдущие уведомления
+            const oldNotifications = document.querySelectorAll('.custom-notification');
+            oldNotifications.forEach(n => n.remove());
+            
             const notification = document.createElement('div');
+            notification.className = 'custom-notification';
             notification.textContent = message;
+            
+            // Настройка цвета в зависимости от типа
+            let bgColor, textColor;
+            switch(type) {
+                case 'success':
+                    bgColor = 'linear-gradient(90deg, #56d364, #7ffe94)';
+                    textColor = '#000';
+                    break;
+                case 'error':
+                    bgColor = 'linear-gradient(90deg, #ff7b72, #ff9999)';
+                    textColor = '#000';
+                    break;
+                case 'info':
+                default:
+                    bgColor = 'linear-gradient(90deg, #58a6ff, #79c0ff)';
+                    textColor = '#000';
+                    break;
+            }
+            
             notification.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: linear-gradient(90deg, #00f5ff, #ff00ff);
-                color: #000;
+                background: ${bgColor};
+                color: ${textColor};
                 padding: 15px 25px;
                 border-radius: 10px;
                 font-weight: bold;
                 z-index: 9999;
                 animation: slideInRight 0.3s ease-out;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+                max-width: 300px;
+                word-break: break-word;
             `;
             
             document.body.appendChild(notification);
@@ -2644,7 +2722,21 @@
         document.addEventListener('DOMContentLoaded', function() {
             updatePositionUsdt();
             initChart();
-            loadPositionFromURL();
+            
+            // Загружаем позицию из URL параметров
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.toString()) {
+                loadPositionFromURL();
+            }
+            
+            // Если есть тикер в URL, запускаем мониторинг
+            if (urlParams.has('ticker') && !monitorActive) {
+                setTimeout(() => {
+                    if (document.getElementById('ticker').value.trim() !== '') {
+                        startMonitoring();
+                    }
+                }, 1000);
+            }
             
             document.getElementById('tradingview-chart').innerHTML =
                 '<div style="display: flex; justify-content: center; align-items: center; height: 100%; color: #8b949e; text-align: center; padding: 20px;">' +
@@ -2661,6 +2753,13 @@
         // Закрытие модального окна при клике вне его
         document.getElementById('qr-modal').addEventListener('click', function(e) {
             if (e.target.id === 'qr-modal') {
+                closeQR();
+            }
+        });
+
+        // Закрытие по Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('qr-modal').style.display === 'flex') {
                 closeQR();
             }
         });
@@ -2687,20 +2786,9 @@
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     
     <!-- Модальное окно QR кода -->
-    <div id="qr-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
-        <div style="background:var(--card); padding:30px; border-radius:20px; text-align:center; max-width:500px; width:90%; border:2px solid var(--border); box-shadow: 0 15px 50px rgba(0,0,0,0.5);">
-            <h3 style="color:var(--accent); margin-bottom:20px; font-size:1.5em;">📱 QR код позиции</h3>
-            <div id="qr-code" style="margin:20px 0; display:flex; justify-content:center;"></div>
-            <div style="color:var(--accent2); font-size:0.9em; margin-bottom:20px; padding:10px; background:rgba(255,255,255,0.05); border-radius:10px;">
-                Содержит:<br>
-                • Позицию (Long/Short цены)<br>
-                • Размер позиции<br>
-                • Текущий тикер и алерты<br>
-                ${monitorActive ? '• Текущие рыночные цены' : ''}
-            </div>
-            <button onclick="closeQR()" style="background:linear-gradient(90deg, var(--accent), #79c0ff); color:#000; border:none; padding:12px 40px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1.1em; margin-top:10px;">
-                Закрыть
-            </button>
+    <div id="qr-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+        <div id="qr-modal-content" style="background:var(--card); padding:30px; border-radius:20px; text-align:center; max-width:500px; width:90%; border:2px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.7); max-height:90vh; overflow-y:auto;">
+            <!-- Содержимое будет генерироваться динамически -->
         </div>
     </div>
 </body>
