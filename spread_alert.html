@@ -527,6 +527,26 @@
             visibility: hidden;
         }
         
+        /* Стиль для кнопки QR */
+        #qr-btn {
+            background: linear-gradient(90deg, #7ffe94, #a8ffbb);
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+            width: 100%;
+        }
+        
+        #qr-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(127, 254, 148, 0.3);
+        }
+        
         /* УЛУЧШЕННАЯ мобильная адаптация */
         @media (max-width: 768px) {
             /* Скрываем блок с TradingView на мобильной версии */
@@ -1191,6 +1211,9 @@
     }
 }
     </style>
+    
+    <!-- Библиотека для генерации QR кодов -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
     <!-- ФИКСИРОВАННЫЙ верхний блок -->
@@ -1266,6 +1289,7 @@
                 </div>
                 
                 <button onclick="calcMySpread()" style="margin-top: 20px;">РАССЧИТАТЬ</button>
+                <button id="qr-btn" onclick="generateQR()">📱 QR Позиции</button>
                 <div class="content" id="my-result">—</div>
             </div>
 
@@ -2265,6 +2289,257 @@
             updateProfit();
         }
 
+        // Функция для генерации QR кода
+        function generateQR() {
+            const longExchange = document.getElementById('long-exchange').value;
+            const shortExchange = document.getElementById('short-exchange').value;
+            const longPrice = document.getElementById('long-price').value;
+            const shortPrice = document.getElementById('short-price').value;
+            const positionSize = document.getElementById('position-size').value;
+            const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+            
+            // Данные из LIVE Spread
+            const minAlert = document.getElementById('min-alert').value;
+            const maxAlert = document.getElementById('max-alert').value;
+            
+            // Текущие рыночные цены (если мониторинг активен)
+            const currentBybitPrice = lastPrices.bybit;
+            const currentBinancePrice = lastPrices.binance;
+            const currentSpread = lastPrices.bybit && lastPrices.binance ?
+                ((lastPrices.bybit - lastPrices.binance) / lastPrices.binance * 100).toFixed(3) : null;
+
+            // Проверяем, что заполнены обязательные поля
+            if (!longPrice || !shortPrice) {
+                alert('Заполните цены входа для генерации QR кода');
+                return;
+            }
+
+            // Создаем URL с параметрами позиции
+            const baseUrl = 'https://artofskill.github.io/spread_alert.html';
+            const params = new URLSearchParams({
+                longExchange: longExchange,
+                shortExchange: shortExchange,
+                longPrice: longPrice,
+                shortPrice: shortPrice,
+                positionSize: positionSize || '',
+                timestamp: Date.now()
+            });
+
+            // Добавляем данные из LIVE Spread если они есть
+            if (ticker) {
+                params.set('ticker', ticker);
+            }
+            
+            if (minAlert && minAlert !== '0.80') {
+                params.set('minAlert', minAlert);
+            }
+            
+            if (maxAlert && maxAlert !== '2.00') {
+                params.set('maxAlert', maxAlert);
+            }
+            
+            // Добавляем текущие рыночные данные если мониторинг активен
+            if (monitorActive && currentBybitPrice && currentBinancePrice) {
+                params.set('currentBybit', currentBybitPrice);
+                params.set('currentBinance', currentBinancePrice);
+                params.set('currentSpread', currentSpread);
+                params.set('monitorActive', 'true');
+            }
+
+            const shareUrl = `${baseUrl}?${params.toString()}`;
+            
+            // Генерируем QR код
+            const qrContainer = document.getElementById('qr-code');
+            qrContainer.innerHTML = ''; // Очищаем предыдущий QR
+            
+            // Используем библиотеку QRCode
+            new QRCode(qrContainer, {
+                text: shareUrl,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Показываем модальное окно
+            document.getElementById('qr-modal').style.display = 'flex';
+            
+            // Также показываем URL для копирования
+            const urlDisplay = document.createElement('div');
+            urlDisplay.style.marginTop = '15px';
+            urlDisplay.style.fontSize = '0.8em';
+            urlDisplay.style.color = '#8b949e';
+            urlDisplay.style.wordBreak = 'break-all';
+            urlDisplay.innerHTML = `<strong>URL:</strong><br>${shareUrl}`;
+            qrContainer.parentNode.insertBefore(urlDisplay, qrContainer.nextSibling);
+            
+            // Добавляем кнопку копирования
+            const copyBtn = document.createElement('button');
+            copyBtn.innerHTML = '📋 Скопировать ссылку';
+            copyBtn.style.cssText = `
+                background: var(--bg);
+                color: var(--text);
+                border: 1px solid var(--border);
+                padding: 8px 15px;
+                border-radius: 8px;
+                margin-top: 10px;
+                cursor: pointer;
+                font-size: 0.9em;
+                transition: all 0.3s;
+            `;
+            copyBtn.onclick = function() {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    copyBtn.innerHTML = '✓ Скопировано!';
+                    copyBtn.style.background = 'linear-gradient(90deg, #56d364, #7ffe94)';
+                    copyBtn.style.color = '#000';
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '📋 Скопировать ссылку';
+                        copyBtn.style.background = 'var(--bg)';
+                        copyBtn.style.color = 'var(--text)';
+                    }, 2000);
+                });
+            };
+            urlDisplay.parentNode.insertBefore(copyBtn, urlDisplay.nextSibling);
+        }
+
+        // Функция закрытия QR модального окна
+        function closeQR() {
+            document.getElementById('qr-modal').style.display = 'none';
+        }
+
+        // Функция загрузки позиции из URL параметров
+        function loadPositionFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Загружаем данные из My Position
+            if (urlParams.has('longExchange')) {
+                document.getElementById('long-exchange').value = urlParams.get('longExchange');
+            }
+            
+            if (urlParams.has('shortExchange')) {
+                document.getElementById('short-exchange').value = urlParams.get('shortExchange');
+            }
+            
+            if (urlParams.has('longPrice')) {
+                document.getElementById('long-price').value = urlParams.get('longPrice');
+            }
+            
+            if (urlParams.has('shortPrice')) {
+                document.getElementById('short-price').value = urlParams.get('shortPrice');
+            }
+            
+            if (urlParams.has('positionSize')) {
+                document.getElementById('position-size').value = urlParams.get('positionSize');
+            }
+            
+            // Загружаем данные из LIVE Spread
+            if (urlParams.has('ticker')) {
+                document.getElementById('ticker').value = urlParams.get('ticker');
+            }
+            
+            if (urlParams.has('minAlert')) {
+                document.getElementById('min-alert').value = urlParams.get('minAlert');
+            }
+            
+            if (urlParams.has('maxAlert')) {
+                document.getElementById('max-alert').value = urlParams.get('maxAlert');
+            }
+            
+            // Если есть данные о мониторинге, показываем их
+            if (urlParams.has('currentSpread')) {
+                const spread = parseFloat(urlParams.get('currentSpread'));
+                const color = spread >= 0 ? '#56d364' : '#ff7b72';
+                const sign = spread > 0 ? '' : '-';
+                const absSpread = Math.abs(spread).toFixed(3);
+                
+                const resultDiv = document.getElementById('result');
+                if (resultDiv) {
+                    resultDiv.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2em; color: var(--accent); margin-bottom: 10px;">
+                                Загружены данные из QR
+                            </div>
+                            <div>Текущий спред: <strong style="color:${color}">${sign}${absSpread}%</strong></div>
+                            ${urlParams.has('currentBybit') ? `<div>Bybit: ${parseFloat(urlParams.get('currentBybit')).toFixed(6)}</div>` : ''}
+                            ${urlParams.has('currentBinance') ? `<div>Binance: ${parseFloat(urlParams.get('currentBinance')).toFixed(6)}</div>` : ''}
+                        </div>
+                    `;
+                }
+            }
+            
+            // Если есть параметры цены, автоматически рассчитываем спред
+            if (urlParams.has('longPrice') && urlParams.has('shortPrice')) {
+                setTimeout(() => {
+                    calcMySpread();
+                    updatePositionUsdt();
+                    
+                    // Показываем уведомление о загрузке
+                    showNotification('Позиция загружена из QR кода!');
+                }, 500);
+            }
+        }
+
+        // Функция показа уведомления
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(90deg, #00f5ff, #ff00ff);
+                color: #000;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-weight: bold;
+                z-index: 9999;
+                animation: slideInRight 0.3s ease-out;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Добавить анимации для уведомления
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Функция копирования URL
+        function copyShareUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const baseUrl = 'https://artofskill.github.io/spread_alert.html';
+            const shareUrl = `${baseUrl}?${urlParams.toString()}`;
+            
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Скопировано!';
+                btn.style.background = 'linear-gradient(90deg, #56d364, #7ffe94)';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = 'var(--bg)';
+                }, 2000);
+            });
+        }
+
         function updateProfit() {
             if (mySpread === 0) {
                 document.getElementById('profit-result').innerHTML = 'Введи свою позицию';
@@ -2369,8 +2644,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             updatePositionUsdt();
             initChart();
+            loadPositionFromURL();
             
-            document.getElementById('tradingview-chart').innerHTML = 
+            document.getElementById('tradingview-chart').innerHTML =
                 '<div style="display: flex; justify-content: center; align-items: center; height: 100%; color: #8b949e; text-align: center; padding: 20px;">' +
                 '<div>' +
                 '<div style="font-size: 1.5em; margin-bottom: 10px;">📈</div>' +
@@ -2381,9 +2657,51 @@
             
             document.querySelector('.floating-btn.live').classList.add('active');
         });
+
+        // Закрытие модального окна при клике вне его
+        document.getElementById('qr-modal').addEventListener('click', function(e) {
+            if (e.target.id === 'qr-modal') {
+                closeQR();
+            }
+        });
+
+        // Автоматическое обновление QR при изменении данных
+        document.getElementById('ticker').addEventListener('input', function() {
+            // Если QR окно открыто, обновляем его
+            if (document.getElementById('qr-modal').style.display === 'flex') {
+                setTimeout(generateQR, 100);
+            }
+        });
+
+        // Обновление при изменении позиции
+        ['long-price', 'short-price', 'position-size', 'long-exchange', 'short-exchange'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                if (document.getElementById('qr-modal').style.display === 'flex') {
+                    setTimeout(generateQR, 100);
+                }
+            });
+        });
     </script>
     
     <!-- TradingView Widget -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    
+    <!-- Модальное окно QR кода -->
+    <div id="qr-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+        <div style="background:var(--card); padding:30px; border-radius:20px; text-align:center; max-width:500px; width:90%; border:2px solid var(--border); box-shadow: 0 15px 50px rgba(0,0,0,0.5);">
+            <h3 style="color:var(--accent); margin-bottom:20px; font-size:1.5em;">📱 QR код позиции</h3>
+            <div id="qr-code" style="margin:20px 0; display:flex; justify-content:center;"></div>
+            <div style="color:var(--accent2); font-size:0.9em; margin-bottom:20px; padding:10px; background:rgba(255,255,255,0.05); border-radius:10px;">
+                Содержит:<br>
+                • Позицию (Long/Short цены)<br>
+                • Размер позиции<br>
+                • Текущий тикер и алерты<br>
+                ${monitorActive ? '• Текущие рыночные цены' : ''}
+            </div>
+            <button onclick="closeQR()" style="background:linear-gradient(90deg, var(--accent), #79c0ff); color:#000; border:none; padding:12px 40px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1.1em; margin-top:10px;">
+                Закрыть
+            </button>
+        </div>
+    </div>
 </body>
 </html>
