@@ -291,8 +291,8 @@
         body { padding: 5px; font-size: 12px; }
         h1 { font-size: 1em; }
         
-        .controls select, .controls button, .controls input, .controls a { 
-            padding: 8px 12px; 
+        .controls select, .controls button, .controls input, .controls a {
+            padding: 8px 12px;
             font-size: 14px;
         }
         
@@ -300,6 +300,54 @@
         th, td { padding: 6px 2px; }
         
         .footer { font-size: 0.7em; }
+    }
+
+    /* Стили для игнор-листа */
+    #ignore-list {
+        background: #21262d;
+        color: white;
+        border: 2px solid #30363d;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 16px;
+        width: 200px;
+    }
+
+    #ignore-status {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 0.9em;
+        color: #8b949e;
+    }
+
+    /* Стиль для игнорируемых строк */
+    .ignored-row {
+        opacity: 0.6;
+        filter: grayscale(70%);
+    }
+
+    /* Стиль для текста "игнорируется" */
+    .ignore-tag {
+        background: #ff7b72;
+        color: white;
+        font-size: 0.7em;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: 5px;
+        vertical-align: middle;
+    }
+
+    /* Для мобильной версии */
+    @media (max-width: 768px) {
+        .sound-control {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        #ignore-list {
+            width: 100%;
+            margin: 5px 0;
+        }
     }
 </style>
 </head>
@@ -321,9 +369,25 @@
         <a href="https://artofskill.github.io/spread_alert.html" target="_blank" class="pnl-calc-btn">Spread PNL Calc</a>
     </div>
 
-    <!-- Фильтр звука -->
+    <!-- Фильтр звука + Игнор-лист -->
     <div class="sound-control">
-        Звук при Итого ≥ <input type="number" id="sound-threshold" step="0.1" value="2.5" style="width:90px;"> %
+        <div style="display: flex; align-items: center; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                Звук при Итого ≥ <input type="number" id="sound-threshold" step="0.1" value="2.5" style="width:90px;"> %
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 10px; margin-left: 20px;">
+                <span style="color:#ffa657;">Игнор-лист:</span>
+                <input type="text" id="ignore-list" placeholder="BTC ETH SOL" style="width:200px;">
+                <button onclick="updateIgnoreList()">Игнор</button>
+            </div>
+        </div>
+        <div id="ignore-status" style="margin-top: 10px; color: #8b949e; font-size: 0.9em;">
+            Игнорируется: <span id="ignore-count">0</span> тикеров
+        </div>
+        <div id="ignore-suggestions" style="margin-top: 5px; font-size: 0.8em; color: #8b949e;">
+            Можно вводить несколько тикеров через пробел
+        </div>
     </div>
 
     <div class="spread-calc" style="display:none;">
@@ -421,6 +485,126 @@ function formatFundingTime(nextFundingTime) {
 }
 
 let previousBest = -999;
+
+// Игнор-лист
+let ignoreList = [];
+const IGNORE_STORAGE_KEY = 'dashboard_ignore_list';
+
+// Загрузить игнор-лист из localStorage
+function loadIgnoreList() {
+    const saved = localStorage.getItem(IGNORE_STORAGE_KEY);
+    if (saved) {
+        try {
+            ignoreList = JSON.parse(saved);
+            updateIgnoreUI();
+        } catch (e) {
+            console.error('Ошибка загрузки игнор-листа:', e);
+            ignoreList = [];
+        }
+    }
+}
+
+// Сохранить игнор-лист в localStorage
+function saveIgnoreList() {
+    localStorage.setItem(IGNORE_STORAGE_KEY, JSON.stringify(ignoreList));
+}
+
+// Обновить игнор-лист из поля ввода
+function updateIgnoreList() {
+    const input = document.getElementById('ignore-list').value.trim().toUpperCase();
+    
+    if (!input) {
+        // Очистить игнор-лист
+        ignoreList = [];
+        saveIgnoreList();
+        updateIgnoreUI();
+        update(); // Обновить таблицу
+        return;
+    }
+    
+    // Разделить по пробелам, запятым или переносам строк
+    const newTickers = input.split(/[\s,]+/).filter(ticker => ticker.length > 0);
+    
+    // Добавить новые тикеры, убрать дубликаты
+    ignoreList = [...new Set([...ignoreList, ...newTickers])];
+    
+    // Очистить поле ввода
+    document.getElementById('ignore-list').value = '';
+    
+    // Сохранить и обновить UI
+    saveIgnoreList();
+    updateIgnoreUI();
+    update(); // Обновить таблицу
+    
+    // Показать уведомление
+    showIgnoreNotification(`Добавлено в игнор: ${newTickers.join(', ')}`);
+}
+
+// Обновить отображение игнор-листа
+function updateIgnoreUI() {
+    document.getElementById('ignore-count').textContent = ignoreList.length;
+    
+    // Показать список игнорируемых тикеров
+    const ignoreStatus = document.getElementById('ignore-status');
+    if (ignoreList.length > 0) {
+        ignoreStatus.innerHTML = `Игнорируется: <span id="ignore-count" style="color:#ffa657;">${ignoreList.length}</span> тикеров
+        <span id="ignore-clear" style="margin-left:10px; color:#58a6ff; cursor:pointer; font-size:0.8em;" onclick="clearIgnoreList()">[очистить]</span>`;
+    } else {
+        ignoreStatus.innerHTML = `Игнорируется: <span id="ignore-count">0</span> тикеров`;
+    }
+}
+
+// Очистить игнор-лист
+function clearIgnoreList() {
+    if (confirm('Очистить весь игнор-лист?')) {
+        ignoreList = [];
+        saveIgnoreList();
+        updateIgnoreUI();
+        update(); // Обновить таблицу
+        showIgnoreNotification('Игнор-лист очищен');
+    }
+}
+
+// Удалить конкретный тикер из игнора
+function removeFromIgnore(ticker) {
+    ignoreList = ignoreList.filter(t => t !== ticker);
+    saveIgnoreList();
+    updateIgnoreUI();
+    update(); // Обновить таблицу
+    showIgnoreNotification(`Удален из игнора: ${ticker}`);
+}
+
+// Проверить, игнорируется ли тикер
+function isIgnored(ticker) {
+    return ignoreList.includes(ticker.toUpperCase());
+}
+
+// Показать уведомление об игноре
+function showIgnoreNotification(message) {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(90deg, #ffa657, #ffc489);
+        color: #000;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-weight: bold;
+        z-index: 9999;
+        animation: slideInRight 0.3s ease-out;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        font-size: 0.9em;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => notification.remove(), 300);
+    }, 2000);
+}
 
 // Функция для открытия графика спреда
 function openSpreadChart(ticker) {
@@ -564,15 +748,31 @@ async function update() {
 
             const ticker = sym.replace('USDT', '');
 
-            const rowClass = totalProfit >= parseFloat(document.getElementById('sound-threshold').value) ? 'real-profit' : '';
+            // Проверить игнор-лист
+            const isIgnoredTicker = isIgnored(ticker);
+            const ignoreTag = isIgnoredTicker ? ' <span class="ignore-tag">игнорируется</span>' : '';
+
+            // rowClass с учетом игнора
+            let rowClass = '';
+            if (!isIgnoredTicker && totalProfit >= parseFloat(document.getElementById('sound-threshold').value)) {
+                rowClass = 'real-profit';
+            }
+            if (isIgnoredTicker) {
+                rowClass += ' ignored-row';
+            }
 
             const directionHTML = longOnBybit ?
                 `<div class="direction"><span class="long">L BYBIT</span><span class="short">S BINANCE</span></div>` :
                 `<div class="direction"><span class="long">L BINANCE</span><span class="short">S BYBIT</span></div>`;
 
-            rows.push({totalProfit, html: `
+            rows.push({totalProfit, ticker, html: `
                 <tr class="${rowClass}">
-                    <td><span class="ticker" onclick="if(event.shiftKey) copyTicker('${ticker}', true); else copyTicker('${ticker}');">${ticker}</span></td>
+                    <td>
+                        <span class="ticker" onclick="if(event.shiftKey) copyTicker('${ticker}', true); else copyTicker('${ticker}');"
+                              oncontextmenu="if(isIgnored('${ticker}')) { event.preventDefault(); removeFromIgnore('${ticker}'); return false; }">
+                            ${ticker}${ignoreTag}
+                        </span>
+                    </td>
                     <td><span class="spchart-btn" onclick="openSpreadChart('${ticker}')">spchart</span></td>
                     <td><span class="calc-btn" onclick="document.getElementById('ticker-input').value='${ticker}'; document.querySelector('.spread-calc').style.display='block'; document.querySelector('.toggle-calc-btn').textContent='Закрыть калькулятор'; document.querySelector('.toggle-calc-btn').classList.remove('calc-closed'); document.querySelector('.toggle-calc-btn').classList.add('calc-open'); calcSpread();">Calc</span></td>
                     <td>${fundingSpread.toFixed(4)}%</td>
@@ -592,9 +792,9 @@ async function update() {
             `});
         }
 
-        // ЗВУК + МИГАНИЕ
+        // ЗВУК + МИГАНИЕ с учетом игнора
         const soundThreshold = parseFloat(document.getElementById('sound-threshold').value) || 0.5;
-        const hasAlert = rows.some(r => r.totalProfit >= soundThreshold);
+        const hasAlert = rows.some(r => !isIgnored(r.ticker) && r.totalProfit >= soundThreshold);
 
         if (hasAlert) {
             startContinuousAlert();
@@ -610,7 +810,8 @@ async function update() {
         document.getElementById('last-update').innerHTML = `Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
     } catch (e) {
         console.error(e);
-        document.getElementById('tbody').innerHTML = `<tr><td colspan="14" style="color:#ff7b72">Ошибка сети</td></tr>`;
+        document.getElementById('tbody').innerHTML = `<tr><td colspan="14" style="color:#ff7b72">Ошибка сети, повтор через 30 сек</td></tr>`;
+        setTimeout(update, 30000); // Повтор через 30 сек при ошибке
     }
 }
 
@@ -622,20 +823,33 @@ function updateNow() {
 
 setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleString('ru-RU'), 1000);
 update();
-setInterval(update, 60000);
-
-// Автообновление времени фандинга каждую секунду (только отображаемое время)
-setInterval(() => {
-    const fundingCells = document.querySelectorAll('td:nth-child(15), td:nth-child(16)');
-    fundingCells.forEach(cell => {
-        if (cell.textContent !== '—') {
-            // Обновляем отображение времени (можно добавить логику, если нужно)
-            // Пока просто обновим раз в 10 секунд через полное обновление данных
-        }
-    });
-}, 10000);
+setInterval(update, 15000);  // 15 секунд вместо 60
 
 document.getElementById('ticker-input').addEventListener('keyup', e => { if (e.key === 'Enter') calcSpread(); });
+
+// Обработчик Enter для поля игнор-листа
+document.getElementById('ignore-list').addEventListener('keyup', function(e) {
+    if (e.key === 'Enter') {
+        updateIgnoreList();
+    }
+});
+
+// Загрузить игнор-лист при старте
+loadIgnoreList();
+
+// Добавить анимацию для уведомлений
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
 </script>
 </body>
 </html>
