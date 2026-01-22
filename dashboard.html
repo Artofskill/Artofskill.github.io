@@ -273,13 +273,13 @@
         /* Скрываем: spchart, Calc, Bybit rate, Binance rate */
         th:nth-child(2), td:nth-child(2),  /* spchart */
         th:nth-child(3), td:nth-child(3),  /* Calc */
-        th:nth-child(11), td:nth-child(11), /* Bybit rate */
-        th:nth-child(12), td:nth-child(12)  /* Binance rate */
+        th:nth-child(9), td:nth-child(9),   /* Bybit rate */
+        th:nth-child(10), td:nth-child(10)  /* Binance rate */
         {
             display: none;
         }
         
-        /* Оставляем: Пара, Спред 8ч, Чистый, Бонус вход, Итого, Направление, Bybit цена, Binance цена, Bybit funding, Binance funding */
+        /* Оставляем: Пара, Спред 8ч, Чистый, Бонус вход, Итого, Направление, Bybit funding, Binance funding */
         
         .direction { font-size: 0.75em; }
         
@@ -418,8 +418,6 @@ if (localStorage.getItem('isAuthenticated') !== 'true') {
                 <th style="font-size: 1.1em;">Спред<br>текущий</th>
                 <th style="font-size: 1.1em;">Итого ≈</th>
                 <th style="font-size: 1.1em;">Направление</th>
-                <th style="font-size: 1.1em;">Bybit<br>цена</th>
-                <th style="font-size: 1.1em;">Binance<br>цена</th>
                 <th style="font-size: 1.1em;">Bybit<br>rate</th>
                 <th style="font-size: 1.1em;">Binance<br>rate</th>
                 <th style="font-size: 1.1em;">Bybit<br>funding</th>
@@ -804,8 +802,6 @@ async function update() {
                         ${totalProfit > 0 ? '+' : ''}${totalProfit.toFixed(4)}%
                     </td>
                     <td>${directionHTML}</td>
-                    <td>${byPrice.toFixed(6)}</td>
-                    <td>${bnPrice.toFixed(6)}</td>
                     <td>${br.toFixed(5)}%</td>
                     <td>${bn.toFixed(5)}%</td>
                     <td>${formatFundingTime(bybit[sym].next)}</td>
@@ -832,7 +828,7 @@ async function update() {
         document.getElementById('last-update').innerHTML = `Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
     } catch (e) {
         console.error(e);
-        document.getElementById('tbody').innerHTML = `<tr><td colspan="14" style="color:#ff7b72">Ошибка сети, повтор через 30 сек</td></tr>`;
+        document.getElementById('tbody').innerHTML = `<tr><td colspan="12" style="color:#ff7b72">Ошибка сети, повтор через 30 сек</td></tr>`;
         setTimeout(update, 30000); // Повтор через 30 сек при ошибке
     }
 }
@@ -875,7 +871,6 @@ document.head.appendChild(style);
 </script>
 </body>
 </html>
-
 
 
 
