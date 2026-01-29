@@ -1913,7 +1913,7 @@ if (localStorage.getItem('isAuthenticated') !== 'true') {
             const longPositionUsdt = positionSize * longPrice;
             const shortPositionUsdt = positionSize * shortPrice;
             const totalPositionUsdt = longPositionUsdt + shortPositionUsdt;
-            const commissionUsdt = totalPositionUsdt * 0.0025;
+             const commissionUsdt = totalPositionUsdt * 0.00145;
             
             return {
                 longPositionUsdt: longPositionUsdt,
@@ -2116,7 +2116,7 @@ if (localStorage.getItem('isAuthenticated') !== 'true') {
                             <span class="commission-value">${commissionData.commissionUsdt.toFixed(2)} USDT</span>
                         </div>
                         <div style="font-size: 0.9em; color: #8b949e; margin-top: 5px;">
-                            Long: ${commissionData.longPositionUsdt.toFixed(2)} USDT + Short: ${commissionData.shortPositionUsdt.toFixed(2)} USDT = ${commissionData.totalPositionUsdt.toFixed(2)} USDT × 0.25%
+                            Long: ${commissionData.longPositionUsdt.toFixed(2)} USDT + Short: ${commissionData.shortPositionUsdt.toFixed(2)} USDT = ${commissionData.totalPositionUsdt.toFixed(2)} USDT × 0.145%
                         </div>
                     </div>
                 `;
