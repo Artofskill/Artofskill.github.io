@@ -1249,8 +1249,8 @@ if (localStorage.getItem('isAuthenticated') !== 'true') {
                 <h2>LIVE Spread</h2>
                 <input type="text" id="ticker" placeholder="Введите тикер" autofocus>
                 <div style="margin:15px 0; font-size: 0.95em; text-align: center;">
-                    ≤ <input type="number" id="min-alert" step="0.01" value="0.80" style="width:80px;"> % 
-                    ≥ <input type="number" id="max-alert" step="0.01" value="2.00" style="width:80px;"> %
+                    ≤ <input type="number" id="min-alert" step="0.01" value="0" style="width:80px;"> %
+                    ≥ <input type="number" id="max-alert" step="0.01" value="0" style="width:80px;"> %
                 </div>
                 <button id="start-btn" onclick="startMonitoring()">СТАРТ</button>
                 <button id="stop-btn" onclick="stopMonitoring()" style="display:none;" class="stop">СТОП</button>
@@ -1642,7 +1642,7 @@ if (localStorage.getItem('isAuthenticated') !== 'true') {
             }
             
             const symbol = ticker.toUpperCase() + 'USDT';
-            const expression = `BINANCE:${symbol}.P - BYBIT:${symbol}.P`;
+            const expression = `BINANCE:${symbol}.P / BYBIT:${symbol}.P`;
             
             currentTicker = symbol;
             
@@ -1682,7 +1682,7 @@ if (localStorage.getItem('isAuthenticated') !== 'true') {
             }
             
             const symbol = ticker + 'USDT';
-            const expression = `BINANCE:${symbol}.P - BYBIT:${symbol}.P`;
+            const expression = `BINANCE:${symbol}.P / BYBIT:${symbol}.P`;
             const url = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(expression)}&interval=${currentChartInterval}`;
             
             window.open(url, '_blank');
