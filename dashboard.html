@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL│ Bybit ↔ Binance</title>
+    <title>ASPAN Terminal</title>
     <style>
     /* CSS Variables */
     :root {
@@ -263,6 +263,9 @@
         .sound-control { font-size: 1em; }
         .sound-control input { width: 80px; }
         
+        .toggle-calc-btn { width: 100%; margin: 0; box-sizing: border-box; text-align: center; }
+        .pnl-calc-btn { width: 100%; margin: 0; box-sizing: border-box; text-align: center; display: block; }
+        
         .spread-calc { padding: 15px; margin: 10px auto; }
         .calc-result { font-size: 0.9em; padding: 10px; }
         
@@ -362,7 +365,7 @@ if (localStorage.getItem('isAuthenticated') !== 'true') {
 <!-- Кнопка выхода -->
 <button onclick="logout()" style="position:fixed; top:20px; right:20px; padding:10px 20px; border-radius:12px; border:none; background:linear-gradient(90deg, #ff7b72, #ff9999); color:white; font-weight:bold; cursor:pointer; z-index:10000;">Выход</button>
 
-    <h1>TERMINAL │ Bybit ↔ Binance</h1>
+    <h1>ASPAN Terminal</h1>
     <div class="update" id="last-update">Обновлено: —</div>
 
     <div class="controls">
@@ -390,6 +393,7 @@ if (localStorage.getItem('isAuthenticated') !== 'true') {
                 <span style="color:#ffa657;">Игнор-лист:</span>
                 <input type="text" id="ignore-list" placeholder="BTC ETH SOL" style="width:200px;">
                 <button onclick="updateIgnoreList()">Игнор</button>
+                <button onclick="openIgnoreModal()" style="background: linear-gradient(90deg, #6e40c9, #8957e5);">Показать игнор-лист</button>
             </div>
         </div>
         <div id="ignore-status" style="margin-top: 10px; color: #8b949e; font-size: 0.9em;">
@@ -413,10 +417,10 @@ if (localStorage.getItem('isAuthenticated') !== 'true') {
                 <th style="font-size: 1.1em;">Пара</th>
                 <th style="font-size: 1.1em;">spchart</th>
                 <th style="font-size: 1.1em;">Calc</th>
-                <th style="font-size: 1.1em;">Real Fund</th>
+                <th style="font-size: 1.1em; cursor:pointer; user-select:none;" onclick="setSort('realFund')" id="th-realFund">Real Fund ↕</th>
                 <th style="font-size: 1.1em;">Fund-fee</th>
-                <th style="font-size: 1.1em;">Спред<br>текущий</th>
-                <th style="font-size: 1.1em;">Итого ≈</th>
+                <th style="font-size: 1.1em; cursor:pointer; user-select:none;" onclick="setSort('entryBonus')" id="th-entryBonus">Спред<br>текущий ↕</th>
+                <th style="font-size: 1.1em; cursor:pointer; user-select:none;" onclick="setSort('totalProfit')" id="th-totalProfit">Итого ≈ ↕</th>
                 <th style="font-size: 1.1em;">Направление</th>
                 <th style="font-size: 1.1em;">Bybit<br>rate</th>
                 <th style="font-size: 1.1em;">Binance<br>rate</th>
@@ -434,6 +438,25 @@ if (localStorage.getItem('isAuthenticated') !== 'true') {
     </div>
 
     <div class="copied" id="copied">Скопировано!</div>
+
+<!-- Модальное окно игнор-листа -->
+<div id="ignore-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#161b22; border:2px solid #30363d; border-radius:20px; padding:30px; width:90%; max-width:500px; max-height:80vh; display:flex; flex-direction:column; gap:15px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="margin:0; color:#c9d1d9; font-size:1.3em;">Игнор-лист</h2>
+            <span onclick="closeIgnoreModal()" style="cursor:pointer; color:#8b949e; font-size:1.5em; line-height:1;">✕</span>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="modal-ignore-input" placeholder="Добавить тикер (BTC ETH...)" style="flex:1; background:#0d1117; color:#c9d1d9; border:2px solid #30363d; padding:10px 15px; border-radius:12px; font-size:1em;">
+            <button onclick="modalAddTicker()" style="white-space:nowrap;">Добавить</button>
+        </div>
+        <div id="modal-ignore-list" style="overflow-y:auto; display:flex; flex-wrap:wrap; gap:8px; max-height:50vh; padding:5px 0;"></div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button onclick="if(confirm('Очистить весь игнор-лист?')){ignoreList=[];saveIgnoreList();updateIgnoreUI();renderModalIgnoreList();}" style="background:linear-gradient(90deg,#da3633,#f85149);">Очистить всё</button>
+            <button onclick="closeIgnoreModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
 
 <script>
 // Функция выхода
@@ -704,6 +727,25 @@ async function calcSpread() {
 
 let pricesCache = {};
 let fundingCache = {};
+let currentSort = 'totalProfit';
+let currentSortDir = -1;
+
+function setSort(field) {
+    if (currentSort === field) {
+        currentSortDir *= -1;
+    } else {
+        currentSort = field;
+        currentSortDir = -1;
+    }
+    // Обновить стрелки в заголовках
+    ['realFund','entryBonus','totalProfit'].forEach(f => {
+        const th = document.getElementById('th-' + f);
+        if (!th) return;
+        const base = { realFund: 'Real Fund', entryBonus: 'Спред<br>текущий', totalProfit: 'Итого ≈' }[f];
+        th.innerHTML = base + (currentSort === f ? (currentSortDir === -1 ? ' ▼' : ' ▲') : ' ↕');
+    });
+    renderRows();
+}
 
 async function update() {
     try {
@@ -785,7 +827,7 @@ async function update() {
                 `<div class="direction"><span class="long">L BYBIT</span><span class="short">S BINANCE</span></div>` :
                 `<div class="direction"><span class="long">L BINANCE</span><span class="short">S BYBIT</span></div>`;
 
-            rows.push({totalProfit, ticker, html: `
+            rows.push({totalProfit, realFund: fundingSpread, entryBonus, ticker, html: `
                 <tr class="${rowClass}">
                     <td>
                         <span class="ticker" onclick="if(event.shiftKey) copyTicker('${ticker}', true); else copyTicker('${ticker}');"
@@ -822,15 +864,21 @@ async function update() {
 
         previousBest = bestTotal;
 
-        rows.sort((a,b) => b.totalProfit - a.totalProfit);
-        const limit = parseInt(document.getElementById('limit-select').value) || 10;
-        document.getElementById('tbody').innerHTML = rows.slice(0, limit).map(r => r.html).join('');
+        window._lastRows = rows;
+        renderRows();
         document.getElementById('last-update').innerHTML = `Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
     } catch (e) {
         console.error(e);
         document.getElementById('tbody').innerHTML = `<tr><td colspan="12" style="color:#ff7b72">Ошибка сети, повтор через 30 сек</td></tr>`;
         setTimeout(update, 30000); // Повтор через 30 сек при ошибке
     }
+}
+
+function renderRows() {
+    const rows = window._lastRows || [];
+    rows.sort((a, b) => b[currentSort] - a[currentSort]);
+    const limit = parseInt(document.getElementById('limit-select').value) || 10;
+    document.getElementById('tbody').innerHTML = rows.slice(0, limit).map(r => r.html).join('');
 }
 
 function updateNow() { 
@@ -850,6 +898,59 @@ document.getElementById('ignore-list').addEventListener('keyup', function(e) {
     if (e.key === 'Enter') {
         updateIgnoreList();
     }
+});
+
+// Модальное окно игнор-листа
+function openIgnoreModal() {
+    renderModalIgnoreList();
+    document.getElementById('ignore-modal').style.display = 'flex';
+}
+
+function closeIgnoreModal() {
+    document.getElementById('ignore-modal').style.display = 'none';
+}
+
+function renderModalIgnoreList() {
+    const container = document.getElementById('modal-ignore-list');
+    if (ignoreList.length === 0) {
+        container.innerHTML = '<span style="color:#8b949e;">Список пуст</span>';
+        return;
+    }
+    container.innerHTML = ignoreList.map(ticker => `
+        <div style="display:flex; align-items:center; gap:6px; background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:6px 10px;">
+            <span style="color:#c9d1d9; font-weight:bold;">${ticker}</span>
+            <span onclick="modalRemoveTicker('${ticker}')" style="cursor:pointer; color:#ff7b72; font-size:1.1em; line-height:1;">✕</span>
+        </div>
+    `).join('');
+}
+
+function modalRemoveTicker(ticker) {
+    ignoreList = ignoreList.filter(t => t !== ticker);
+    saveIgnoreList();
+    updateIgnoreUI();
+    renderModalIgnoreList();
+    update();
+}
+
+function modalAddTicker() {
+    const input = document.getElementById('modal-ignore-input');
+    const tickers = input.value.trim().toUpperCase().split(/[\s,]+/).filter(t => t.length > 0);
+    if (tickers.length === 0) return;
+    ignoreList = [...new Set([...ignoreList, ...tickers])];
+    saveIgnoreList();
+    updateIgnoreUI();
+    renderModalIgnoreList();
+    input.value = '';
+    update();
+}
+
+document.getElementById('modal-ignore-input').addEventListener('keyup', e => {
+    if (e.key === 'Enter') modalAddTicker();
+});
+
+// Закрыть по клику вне окна
+document.getElementById('ignore-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeIgnoreModal();
 });
 
 // Загрузить игнор-лист при старте
