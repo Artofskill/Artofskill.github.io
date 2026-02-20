@@ -1214,7 +1214,7 @@
 <body>
     <script>
 // Проверка авторизации при загрузке
-if (localStorage.getItem('isAuthenticated') !== 'true') {
+if (!localStorage.getItem('user_id') || localStorage.getItem('user_role') !== 'admin') {
     window.location.href = 'index.html';
 }
 </script>

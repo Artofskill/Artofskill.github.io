@@ -464,7 +464,7 @@
 
 <script>
 // Проверка авторизации при загрузке
-if (localStorage.getItem('isAuthenticated') !== 'true') {
+if (!localStorage.getItem('user_id') || localStorage.getItem('user_role') !== 'admin') {
     window.location.href = 'index.html';
 }
 </script>
@@ -522,13 +522,12 @@ if (localStorage.getItem('isAuthenticated') !== 'true') {
 <script>
     // Функция выхода
     function logout() {
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('username');
+        localStorage.clear();
         window.location.href = 'index.html';
     }
 
     // Проверка авторизации при загрузке
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
+    if (!localStorage.getItem('user_id') || localStorage.getItem('user_role') !== 'admin') {
         window.location.href = 'index.html';
     }
 

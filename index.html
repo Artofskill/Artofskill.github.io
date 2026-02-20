@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <title>Artofskill — Главная</title>
     <style>
         :root {
@@ -45,17 +46,20 @@
             font-weight: 600;
         }
         .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 28px;
             max-width: 1400px;
             margin: 0 auto 60px;
-            flex: 1;
         }
         .card {
             background: var(--card);
             border-radius: 24px;
-            padding: 35px 25px;
+            padding: 20px 25px;
+            width: 300px;
+            height: 300px;
+            flex-shrink: 0;
             text-align: center;
             box-shadow: 0 10px 35px rgba(0,0,0,0.6);
             border: 2px solid var(--border);
@@ -86,15 +90,15 @@
             box-shadow: 0 25px 50px rgba(88,166,255,0.3);
         }
         .card h2 {
-            font-size: 2em;
-            margin-bottom: 16px;
+            font-size: 1.5em;
+            margin-bottom: 10px;
             color: var(--accent);
             font-weight: 700;
         }
         .card p {
-            font-size: 1.15em;
+            font-size: 1em;
             line-height: 1.7;
-            margin-bottom: 30px;
+            margin-bottom: 16px;
             opacity: 0.9;
         }
         .btn {
@@ -102,8 +106,8 @@
             background: linear-gradient(90deg, var(--accent), #79c0ff);
             color: #000;
             font-weight: bold;
-            font-size: 1.4em;
-            padding: 16px 50px;
+            font-size: 1.1em;
+            padding: 12px 40px;
             border-radius: 50px;
             text-decoration: none;
             box-shadow: 0 8px 25px rgba(0,0,0,0.5);
@@ -122,6 +126,7 @@
             color: #8b949e;
             font-size: 0.95em;
             border-top: 1px solid var(--border);
+            margin-top: auto;
         }
 
         /* Анимации */
@@ -148,19 +153,25 @@
 </head>
 <body>
 
-    <div id="login-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9999; display:flex; justify-content:center; align-items:center;">
-  <div style="background:var(--card); padding:40px; border-radius:20px; border:2px solid var(--border); max-width:400px; width:90%; text-align:center;">
-    <h2 style="color:var(--accent); margin-bottom:30px;">Вход в систему</h2>
-    <input type="text" id="login-username" placeholder="Логин" style="width:100%; padding:15px; margin-bottom:20px; border-radius:12px; border:2px solid var(--border); background:var(--bg); color:var(--text); font-size:1.1em;">
+    <div id="login-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:var(--card); padding:40px; border-radius:20px; border:2px solid var(--border); max-width:400px; width:90%; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.4);">
+    <h2 style="color:var(--accent); margin-bottom:10px;">Terminal Aspan</h2>
+    <p style="color:var(--accent2); margin-bottom:30px; font-size:0.95em;">Только для администраторов</p>
+    <input type="text" id="login-email" placeholder="Email / Логин" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; border:2px solid var(--border); background:var(--bg); color:var(--text); font-size:1.1em;">
     <input type="password" id="login-password" placeholder="Пароль" style="width:100%; padding:15px; margin-bottom:20px; border-radius:12px; border:2px solid var(--border); background:var(--bg); color:var(--text); font-size:1.1em;">
     <button onclick="login()" style="width:100%; padding:16px; border-radius:12px; border:none; background:linear-gradient(90deg, var(--accent), #79c0ff); color:#000; font-weight:bold; font-size:1.2em; cursor:pointer;">Войти</button>
-    <div id="login-error" style="color:#ff7b72; margin-top:15px; display:none;">Неверный логин или пароль</div>
+    <div id="login-error" style="margin-top:15px; display:none; padding:10px; border-radius:8px;"></div>
+    <div id="login-loading" style="display:none; margin-top:15px; color:var(--accent);">Проверка...</div>
   </div>
 </div>
 
+<div style="position:fixed; top:20px; right:20px; z-index:1000;">
+    <button onclick="logout()" style="padding:10px 20px; border-radius:12px; border:2px solid var(--border); background:var(--card); color:#ff7b72; font-weight:bold; font-size:1em; cursor:pointer; transition:all 0.3s;">Выход</button>
+</div>
+
     <div class="header">
-        <h1>Artofskill</h1>
-        <div class="subtitle">Funding + Spread Arbitrage Terminal</div>
+        <h1>Terminal Aspan</h1>
+        <div class="subtitle">Автоматизированная система поиска арбитражных неэффективностей</div>
     </div>
 
     <div class="cards">
@@ -184,83 +195,131 @@
             <div class="btn" onclick="goTo('deposit.html')">Deposit</div>
         </div>
 
+        <div class="card">
+            <h2>Личный кабинет</h2>
+            <p>Портал для участников проекта<br></p>
+            <div class="btn" onclick="goTo('https://artofskill.github.io/LKaspan/index.html')">Открыть</div>
+        </div>
+
     </div>
 
     <div class="footer">
         © 2025 Artofskill — Все инструменты в одном месте<br>
-        <span style="color:#ffa657;">С любовью к арбитражу и профиту</span>
+        <span style="color:#ffa657;">С любовью к арбитражу</span>
     </div>
 
     <script>
-        // Проверка авторизации при загрузке
+const SUPABASE_URL = 'https://tusekrsokkmjtlkvgyvq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_-qYVqquSGHd3z53UDHxWGw_Tvq9358W';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 function checkAuth() {
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    const loginOverlay = document.getElementById('login-overlay');
-    
-    if (!isAuthenticated) {
-        loginOverlay.style.display = 'flex';
+    const userId = localStorage.getItem('user_id');
+    const userRole = localStorage.getItem('user_role');
+    const overlay = document.getElementById('login-overlay');
+    if (userId && userRole === 'admin') {
+        overlay.style.display = 'none';
     } else {
-        loginOverlay.style.display = 'none';
+        localStorage.clear();
+        overlay.style.display = 'flex';
     }
 }
 
-// Функция входа
-function login() {
-    const username = document.getElementById('login-username').value;
+async function login() {
+    const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
-    const errorElement = document.getElementById('login-error');
-    
-    // Проверка логина и пароля
-    if (username === 'Admin' && password === 'Des123123@') {
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('username', username);
-        errorElement.style.display = 'none';
-        checkAuth(); // Скрываем окно входа
-    } else {
-        errorElement.style.display = 'block';
+    const errorEl = document.getElementById('login-error');
+    const loadingEl = document.getElementById('login-loading');
+
+    errorEl.style.display = 'none';
+
+    if (!email || !password) {
+        errorEl.textContent = 'Заполните все поля';
+        errorEl.style.display = 'block';
+        errorEl.style.background = 'rgba(255,123,114,0.2)';
+        errorEl.style.color = '#ff7b72';
+        errorEl.style.border = '1px solid #ff7b72';
+        return;
     }
-}
 
-// Проверить авторизацию при загрузке
-document.addEventListener('DOMContentLoaded', checkAuth);
+    loadingEl.style.display = 'block';
 
-        // 100% надёжный переход — работает даже на iOS Safari и Android
-        function goTo(page) {
-            // Пробуем несколько способов (на всякий случай)
-            try {
-                window.location.href = page;
-            } catch(e) {
-                window.location = page;
-            }
+    try {
+        const { data, error } = await supabaseClient
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        if (!data) {
+            throw new Error('Пользователь не найден');
         }
 
-        // Защита от случайного выделения текста при двойном тапе на мобилках
-        document.addEventListener('touchstart', function(){}, { passive: true });
-        
-        // Предотвращаем переход при клике на карточку (только для мобильных)
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.card');
-            
-            cards.forEach(card => {
-                // Обработчик для предотвращения перехода при клике на карточку
-                card.addEventListener('click', function(event) {
-                    // Если клик был не по кнопке, ничего не делаем
-                    if (!event.target.classList.contains('btn')) {
-                        event.stopPropagation();
-                        return;
-                    }
-                });
-                
-                // Для мобильных: добавляем активный класс при тапе
-                card.addEventListener('touchstart', function() {
-                    this.style.transform = 'translateY(-10px) scale(1.02)';
-                }, { passive: true });
-                
-                card.addEventListener('touchend', function() {
-                    this.style.transform = '';
-                }, { passive: true });
-            });
+        if (password !== data.password) {
+            throw new Error('Неверный пароль');
+        }
+
+        if (data.role !== 'admin') {
+            throw new Error('Доступ запрещён. Только для администраторов');
+        }
+
+        localStorage.setItem('user_id', data.id);
+        localStorage.setItem('user_email', data.email);
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('user_role', data.role);
+        localStorage.setItem('user_data', JSON.stringify(data));
+
+        errorEl.textContent = 'Добро пожаловать, ' + data.username + '!';
+        errorEl.style.display = 'block';
+        errorEl.style.background = 'rgba(86,211,100,0.2)';
+        errorEl.style.color = '#56d364';
+        errorEl.style.border = '1px solid #56d364';
+
+        setTimeout(() => {
+            document.getElementById('login-overlay').style.display = 'none';
+        }, 1000);
+
+    } catch (err) {
+        errorEl.textContent = err.message || 'Ошибка при входе';
+        errorEl.style.display = 'block';
+        errorEl.style.background = 'rgba(255,123,114,0.2)';
+        errorEl.style.color = '#ff7b72';
+        errorEl.style.border = '1px solid #ff7b72';
+    } finally {
+        loadingEl.style.display = 'none';
+    }
+}
+
+function goTo(page) {
+    try { window.location.href = page; } catch(e) { window.location = page; }
+}
+
+function logout() {
+    localStorage.clear();
+    document.getElementById('login-overlay').style.display = 'flex';
+}
+
+document.addEventListener('DOMContentLoaded', checkAuth);
+document.addEventListener('touchstart', function(){}, { passive: true });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.addEventListener('click', function(event) {
+            if (!event.target.classList.contains('btn')) {
+                event.stopPropagation();
+            }
         });
+        card.addEventListener('touchstart', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+        }, { passive: true });
+        card.addEventListener('touchend', function() {
+            this.style.transform = '';
+        }, { passive: true });
+    });
+});
     </script>
 
 </body>
